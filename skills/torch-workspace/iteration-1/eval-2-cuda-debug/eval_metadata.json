@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-2-cuda-debug",
+  "prompt": "Mon entraînement plante avec cette erreur : 'CUDA error: device-side assert triggered' sur la loss cross-entropy. Mes labels vont de 1 à 10, mon modèle sort 10 logits. Comment je débogue ça ?",
+  "assertions": [
+    "Le problème identifié est que les labels commencent à 1 au lieu de 0",
+    "La commande CUDA_LAUNCH_BLOCKING=1 est mentionnée pour obtenir la vraie ligne d'erreur",
+    "Une vérification avec targets.max() ou targets.min() est proposée",
+    "La correction (soustraire 1 aux labels ou changer num_classes) est fournie"
+  ]
+}

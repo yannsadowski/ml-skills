@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "skill_name": "dl-profiling",
+    "skill_path": "/home/ysadowski/.claude/plugins/local/ml-skills/skills/dl-profiling",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-04-21T00:00:00Z",
+    "evals_run": [1, 2, 3],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "GPU underutilization",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 37.4,
+        "tokens": 6472,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "nvidia-smi ou nvidia-smi dmon est mentionné", "passed": true, "evidence": "nvidia-smi dmon mentionné en étape 1"},
+        {"text": "Un benchmark du DataLoader seul (sans forward pass) est proposé", "passed": true, "evidence": "Benchmark DataLoader isolé en étape 4"},
+        {"text": "La comparaison batch load time vs GPU step time est expliquée", "passed": true, "evidence": "Comparaison explicite avec règle décisionnelle"},
+        {"text": "La conclusion oriente vers data-optim si data loading > GPU step time", "passed": true, "evidence": "Orientation explicite vers data-optim skill"},
+        {"text": "PyTorch Profiler ou record_function est mentionné pour un diagnostic plus fin", "passed": true, "evidence": "PyTorch Profiler avec record_function mentionné"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "GPU underutilization",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 35.0,
+        "tokens": 5752,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "nvidia-smi ou nvidia-smi dmon est mentionné", "passed": true, "evidence": "nvidia-smi mentionné"},
+        {"text": "Un benchmark du DataLoader seul (sans forward pass) est proposé", "passed": false, "evidence": "Mesure intégrée à la boucle complète, pas en standalone isolé"},
+        {"text": "La comparaison batch load time vs GPU step time est expliquée", "passed": true, "evidence": "Mesure temporelle manuelle présente"},
+        {"text": "La conclusion oriente vers data-optim si data loading > GPU step time", "passed": true, "evidence": "Solutions data loading mentionnées"},
+        {"text": "PyTorch Profiler ou record_function est mentionné pour un diagnostic plus fin", "passed": true, "evidence": "PyTorch Profiler présent"}
+      ],
+      "notes": ["Benchmark DataLoader standalone absent — approche moins rigoureuse"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "PyTorch Profiler",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 37.4,
+        "tokens": 6472,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "torch.profiler.profile est utilisé comme context manager", "passed": true, "evidence": "with profile(...) as prof: présent"},
+        {"text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus", "passed": true, "evidence": "Les deux activities incluses"},
+        {"text": "Un schedule avec wait, warmup, et active est configuré", "passed": true, "evidence": "schedule(wait=1, warmup=2, active=5) présent"},
+        {"text": "prof.step() est appelé à chaque itération", "passed": true, "evidence": "prof.step() dans la boucle"},
+        {"text": "record_function est utilisé pour annoter forward, backward, et optimizer", "passed": true, "evidence": "record_function pour les 4 phases"},
+        {"text": "tensorboard_trace_handler ou export_chrome_trace est utilisé", "passed": true, "evidence": "tensorboard_trace_handler présent"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "PyTorch Profiler",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 35.0,
+        "tokens": 5752,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "torch.profiler.profile est utilisé comme context manager", "passed": true, "evidence": "Context manager présent"},
+        {"text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus", "passed": true, "evidence": "Les deux présents"},
+        {"text": "Un schedule avec wait, warmup, et active est configuré", "passed": true, "evidence": "Schedule configuré"},
+        {"text": "prof.step() est appelé à chaque itération", "passed": true, "evidence": "prof.step() présent"},
+        {"text": "record_function est utilisé pour annoter forward, backward, et optimizer", "passed": true, "evidence": "record_function présent"},
+        {"text": "tensorboard_trace_handler ou export_chrome_trace est utilisé", "passed": true, "evidence": "Les deux méthodes mentionnées"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "CPU bottleneck",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 37.4,
+        "tokens": 6472,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le data loading (num_workers, pin_memory) est identifié comme cause probable", "passed": true, "evidence": "num_workers et pin_memory mentionnés"},
+        {"text": "Les opérations CPU dans la boucle (numpy, metrics, conversions) sont mentionnées", "passed": true, "evidence": ".item(), conversions, tenseurs CPU identifiés"},
+        {"text": "torch.compile est suggéré comme optimisation", "passed": true, "evidence": "torch.compile en première priorité"},
+        {"text": "optimizer.zero_grad(set_to_none=True) est mentionné", "passed": true, "evidence": "zero_grad(set_to_none=True) présent"},
+        {"text": "Une stratégie pour isoler la source (profiler avec DataLoader vide) est proposée", "passed": true, "evidence": "Diagnostic avec profiler et DataLoader vide proposé"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "CPU bottleneck",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 35.0,
+        "tokens": 5752,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le data loading (num_workers, pin_memory) est identifié comme cause probable", "passed": true, "evidence": "num_workers=0 et pin_memory mentionnés"},
+        {"text": "Les opérations CPU dans la boucle (numpy, metrics, conversions) sont mentionnées", "passed": true, "evidence": ".item() et conversions mentionnés"},
+        {"text": "torch.compile est suggéré comme optimisation", "passed": true, "evidence": "torch.compile présent"},
+        {"text": "optimizer.zero_grad(set_to_none=True) est mentionné", "passed": true, "evidence": "zero_grad non optimisé identifié comme cause"},
+        {"text": "Une stratégie pour isoler la source (profiler avec DataLoader vide) est proposée", "passed": false, "evidence": "Liste de causes et corrections sans démarche diagnostique isolée"}
+      ],
+      "notes": ["Approche liste de solutions sans démarche diagnostique — skill apporte la méthode d'isolation"]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 37.4, "stddev": 0.0, "min": 37.4, "max": 37.4},
+      "tokens": {"mean": 6472, "stddev": 0, "min": 6472, "max": 6472}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.87, "stddev": 0.09, "min": 0.8, "max": 1.0},
+      "time_seconds": {"mean": 35.0, "stddev": 0.0, "min": 35.0, "max": 35.0},
+      "tokens": {"mean": 5752, "stddev": 0, "min": 5752, "max": 5752}
+    },
+    "delta": {
+      "pass_rate": "+0.13",
+      "time_seconds": "+2.4",
+      "tokens": "+720"
+    }
+  },
+  "notes": [
+    "Eval 2 (PyTorch Profiler) passe à 100% dans les deux configs — assertion peu discriminante, PyTorch Profiler est bien connu sans skill",
+    "Evals 1 et 3 montrent un apport clair : le skill amène la méthode d'isolation (benchmark standalone, DataLoader vide) absente sans skill",
+    "1 seul run par configuration — relancer avec runs_per_configuration=3 pour des stats fiables"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-3-cpu-bottleneck",
+  "prompt": "Mon profiling montre que 60% du temps est en CPU et seulement 40% en GPU. Le modèle est un simple MLP. Qu'est-ce qui peut expliquer ça et comment corriger ?",
+  "assertions": [
+    "Le data loading (num_workers, pin_memory) est identifié comme cause probable",
+    "Les opérations CPU dans la boucle (numpy, metrics, conversions) sont mentionnées",
+    "torch.compile est suggéré comme optimisation",
+    "optimizer.zero_grad(set_to_none=True) est mentionné",
+    "Une stratégie pour isoler la source (profiler avec DataLoader vide) est proposée"
+  ]
+}

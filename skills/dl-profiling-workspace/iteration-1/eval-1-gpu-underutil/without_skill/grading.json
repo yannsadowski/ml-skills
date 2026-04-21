@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "nvidia-smi ou nvidia-smi dmon est mentionné pour observer l'utilisation GPU en temps réel",
+      "passed": true,
+      "evidence": "L'étape 1 mentionne 'watch -n 0.5 nvidia-smi' et 'nvidia-smi dmon -s u -d 1'."
+    },
+    {
+      "text": "Un benchmark du DataLoader seul (sans forward pass) est proposé pour mesurer le temps de chargement",
+      "passed": false,
+      "evidence": "L'étape 3 mesure data_times en incluant le .to('cuda') et la synchronisation, mais pas de benchmark isolé du DataLoader sans forward pass. La mesure de data loading est intégrée à la boucle d'entraînement complète, pas en standalone."
+    },
+    {
+      "text": "La comparaison batch load time vs GPU step time est expliquée",
+      "passed": true,
+      "evidence": "L'étape 3 calcule et affiche 'Data loading moyen' vs 'Compute moyen' avec un ratio, et explique l'interprétation (ratio > 1 = data bottleneck)."
+    },
+    {
+      "text": "La conclusion oriente vers data-optim si data loading > GPU step time",
+      "passed": true,
+      "evidence": "La section 'Solutions selon le diagnostic' propose des corrections DataLoader (num_workers, pin_memory, prefetch_factor) quand le ratio data/compute > 1."
+    },
+    {
+      "text": "PyTorch Profiler ou record_function est mentionné pour un diagnostic plus fin",
+      "passed": true,
+      "evidence": "L'étape 4 utilise torch.profiler avec profile(), record_function pour forward/loss/backward, et prof.step()."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

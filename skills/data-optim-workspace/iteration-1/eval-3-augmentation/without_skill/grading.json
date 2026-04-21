@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "torchvision.transforms v2 ou kornia pour augmentation GPU est mentionné",
+      "passed": true,
+      "evidence": "Section \"5. Optimiser la pipeline existante dans __getitem__\" : `import torchvision.transforms.v2 as T` décrit comme \"Nouveau (plus rapide, supporte batch et GPU)\". La section \"1. Déplacer les augmentations sur GPU\" utilise aussi `T.Compose` de transforms.v2."
+    },
+    {
+      "text": "La distinction CPU augmentation vs GPU augmentation est expliquée",
+      "passed": true,
+      "evidence": "Section \"1. Déplacer les augmentations sur GPU\" explique le principe, et le tableau \"Résumé des gains attendus\" compare explicitement \"torchvision CPU dans __getitem__\" vs \"Augmentations GPU (batch-level)\" avec des chiffres de réduction."
+    },
+    {
+      "text": "L'option de pré-calculer (offline augmentation) est mentionnée pour les petits datasets",
+      "passed": true,
+      "evidence": "Section \"4. Appliquer les augmentations offline (pré-calcul)\" avec code de pré-génération de N versions augmentées, et mention des avantages/inconvénients : \"Avantage : `__getitem__` ne fait plus qu'un `load` sans transformation. Inconvénient : Moins de diversité, espace disque multiplié par N.\""
+    },
+    {
+      "text": "L'augmentation dans le collate_fn (après stack batch) est proposée pour réduire les appels",
+      "passed": false,
+      "evidence": "collate_fn n'est pas mentionné dans le fichier. L'augmentation batch-level est proposée directement dans la boucle d'entraînement après `.cuda()`, sans passer par collate_fn."
+    },
+    {
+      "text": "Le tradeoff mémoire/vitesse est abordé",
+      "passed": false,
+      "evidence": "Aucune discussion explicite du tradeoff mémoire/vitesse. L'inconvénient de l'offline augmentation mentionne \"espace disque multiplié par N\" mais pas le tradeoff mémoire RAM vs vitesse. pin_memory n'est pas discuté sous cet angle."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

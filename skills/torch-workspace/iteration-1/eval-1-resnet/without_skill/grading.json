@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Le code définit une classe nn.Module avec des blocs résiduels",
+      "passed": true,
+      "evidence": "Deux classes nn.Module définies : ResidualBlock (avec skip connection out + residual) et ResNetMLP qui les utilise."
+    },
+    {
+      "text": "Chaque bloc utilise LayerNorm et GELU (pas BatchNorm ni ReLU)",
+      "passed": true,
+      "evidence": "ResidualBlock contient self.norm = nn.LayerNorm(dim) et self.act = nn.GELU(). Aucune BatchNorm ni ReLU."
+    },
+    {
+      "text": "Le dropout est fixé à 0.1",
+      "passed": true,
+      "evidence": "dropout: float = 0.1 en paramètre par défaut de ResidualBlock et ResNetMLP, instancié avec dropout=0.1."
+    },
+    {
+      "text": "La couche finale produit 10 logits",
+      "passed": true,
+      "evidence": "self.classifier = nn.Linear(hidden_dim, num_classes) avec num_classes=10, et la sortie attendue Shape des logits : torch.Size([32, 10])."
+    },
+    {
+      "text": "Le nombre de paramètres trainables est calculé et affiché",
+      "passed": true,
+      "evidence": "Fonction count_trainable_params(model) avec sum(p.numel() for p in model.parameters() if p.requires_grad), appelée et affichée via print."
+    },
+    {
+      "text": "Les submodules sont enregistrés avec nn.ModuleList ou nn.Sequential (pas une liste Python)",
+      "passed": true,
+      "evidence": "self.blocks = nn.ModuleList([ResidualBlock(hidden_dim, dropout) for _ in range(num_blocks)]). Les sous-couches du bloc sont des attributs directs (pas de liste Python)."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "num_workers, pin_memory=True, persistent_workers=True, prefetch_factor sont tous mentionnés",
+      "passed": true,
+      "evidence": "Section \"3. Optimiser le DataLoader\" : `num_workers=8`, `pin_memory=True`, `persistent_workers=True`, `prefetch_factor=4` tous présents dans le même bloc de code."
+    },
+    {
+      "text": "La conversion des JPEGs vers HDF5 ou numpy memmap est recommandée",
+      "passed": false,
+      "evidence": "HDF5 est mentionné marginalement (\"Option C : TFRecord / HDF5 (moins courant en PyTorch mais efficace)\") sans code ni recommandation forte. numpy memmap n'est pas mentionné. Les formats principaux recommandés sont WebDataset (TAR) et LMDB, pas HDF5 ni memmap."
+    },
+    {
+      "text": "Le cache en RAM (si dataset tient en mémoire) est mentionné",
+      "passed": true,
+      "evidence": "Section \"4. Mise en cache partielle en RAM\" avec un `CachedDataset` et mention d'un ramdisk : `sudo mount -t tmpfs -o size=20G tmpfs /mnt/ramdisk`."
+    },
+    {
+      "text": "Un benchmark DataLoader (mesure du batch load time) est proposé pour quantifier le gain",
+      "passed": false,
+      "evidence": "La section \"7. Profiler pour identifier le vrai bottleneck\" utilise `torch.profiler` (CPU/CUDA), mais ne propose pas de benchmark simple de batch load time. Aucune mesure explicite du temps de chargement de batch en isolation n'est suggérée."
+    },
+    {
+      "text": "drop_last=True est mentionné pour éviter les batches partiels lents",
+      "passed": false,
+      "evidence": "drop_last=True n'est mentionné nulle part dans le fichier."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 3,
+    "total": 5,
+    "pass_rate": 0.4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-1-resnet",
+  "prompt": "Implémente un ResNet à 3 blocs résiduels pour de la classification sur 10 classes. L'entrée est un tenseur de shape (batch, 128). Utilise LayerNorm, GELU, et dropout=0.1. Affiche le nombre de paramètres trainables.",
+  "assertions": [
+    "Le code définit une classe nn.Module avec des blocs résiduels",
+    "Chaque bloc utilise LayerNorm et GELU (pas BatchNorm ni ReLU)",
+    "Le dropout est fixé à 0.1",
+    "La couche finale produit 10 logits",
+    "Le nombre de paramètres trainables est calculé et affiché",
+    "Les submodules sont enregistrés avec nn.ModuleList ou nn.Sequential (pas une liste Python)"
+  ]
+}

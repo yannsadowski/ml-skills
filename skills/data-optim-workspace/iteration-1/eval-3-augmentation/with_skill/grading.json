@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "torchvision.transforms v2 ou kornia pour augmentation GPU est mentionné",
+      "passed": true,
+      "evidence": "Section \"Étape 2 — Créer un module d'augmentation GPU\" : `import torchvision.transforms.v2 as T` avec `GPUAugmentation(nn.Module)`. kornia n'est pas mentionné mais transforms.v2 est explicitement utilisé pour l'augmentation GPU."
+    },
+    {
+      "text": "La distinction CPU augmentation vs GPU augmentation est expliquée",
+      "passed": true,
+      "evidence": "Tableau comparatif : \"Avant (CPU dans `__getitem__`) / Après (GPU dans training loop)\" avec explication du parallélisme et des gains (10-50ms/image sur CPU vs <1ms sur GPU pour un batch)."
+    },
+    {
+      "text": "L'option de pré-calculer (offline augmentation) est mentionnée pour les petits datasets",
+      "passed": true,
+      "evidence": "Section \"Optimisation complémentaire — Augmentation semi-offline pour les transforms fixes\" avec `PreprocessedDataset` qui pré-applique les transforms déterministes et note `[ ] Si dataset petit (<10GB en RAM) → CachedDataset + aug GPU`."
+    },
+    {
+      "text": "L'augmentation dans le collate_fn (après stack batch) est proposée pour réduire les appels",
+      "passed": false,
+      "evidence": "collate_fn n'est pas mentionné dans le fichier. L'augmentation GPU est appliquée dans la boucle d'entraînement après `.to(device)`, mais pas via collate_fn."
+    },
+    {
+      "text": "Le tradeoff mémoire/vitesse est abordé",
+      "passed": false,
+      "evidence": "Aucune discussion explicite du tradeoff mémoire/vitesse. pin_memory=True est mentionné dans la config DataLoader sans expliquer le compromis. La PreprocessedDataset note implicitement le coût en RAM mais sans le formuler comme tradeoff."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

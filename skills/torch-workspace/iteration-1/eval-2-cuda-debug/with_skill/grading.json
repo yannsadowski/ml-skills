@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Le problème identifié est que les labels commencent à 1 au lieu de 0",
+      "passed": true,
+      "evidence": "Dès le début : \"Tes labels vont de 1 à 10, mais nn.CrossEntropyLoss attend des labels dans [0, num_classes - 1], soit [0, 9] pour 10 classes.\""
+    },
+    {
+      "text": "La commande CUDA_LAUNCH_BLOCKING=1 est mentionnée pour obtenir la vraie ligne d'erreur",
+      "passed": true,
+      "evidence": "Étape 1 explicitement dédiée : \"CUDA_LAUNCH_BLOCKING=1 python train.py\" et variante Python os.environ[\"CUDA_LAUNCH_BLOCKING\"] = \"1\"."
+    },
+    {
+      "text": "Une vérification avec targets.max() ou targets.min() est proposée",
+      "passed": true,
+      "evidence": "Étape 2 propose labels.min().item() et labels.max().item() avec assertions explicites, et le récapitulatif reprend labels.min() et labels.max()."
+    },
+    {
+      "text": "La correction (soustraire 1 aux labels ou changer num_classes) est fournie",
+      "passed": true,
+      "evidence": "Option A : \"labels = labels - 1  # 1..10  →  0..9\". Également mention de num_classes incorrect dans la table des autres causes."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "skill_name": "dl-profiling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Mon GPU (RTX 5090) tourne à 40% d'utilisation pendant l'entraînement. Comment je détermine si le bottleneck est le data loading ou le modèle ? Donne-moi les étapes concrètes.",
+      "expected_output": "Diagnostic en deux étapes : vérification avec nvidia-smi, puis benchmark du DataLoader séparé du forward pass pour identifier la source du bottleneck.",
+      "expectations": [
+        "nvidia-smi ou nvidia-smi dmon est mentionné pour observer l'utilisation GPU en temps réel",
+        "Un benchmark du DataLoader seul (sans forward pass) est proposé pour mesurer le temps de chargement",
+        "La comparaison batch load time vs GPU step time est expliquée",
+        "La conclusion oriente vers data-optim si data loading > GPU step time",
+        "PyTorch Profiler ou record_function est mentionné pour un diagnostic plus fin"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Je veux profiler mon training loop avec PyTorch Profiler pour voir quelles opérations prennent le plus de temps. Montre-moi comment l'intégrer dans ma boucle d'entraînement existante.",
+      "expected_output": "Code avec torch.profiler.profile, schedule (wait/warmup/active), tensorboard_trace_handler, record_function pour forward/loss/backward/optimizer, et prof.step() dans la boucle.",
+      "expectations": [
+        "torch.profiler.profile est utilisé comme context manager",
+        "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus",
+        "Un schedule avec wait, warmup, et active est configuré",
+        "prof.step() est appelé à chaque itération",
+        "record_function est utilisé pour annoter forward, backward, et optimizer",
+        "tensorboard_trace_handler ou export_chrome_trace est utilisé pour visualiser"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Mon profiling montre que 60% du temps est en CPU et seulement 40% en GPU. Le modèle est un simple MLP. Qu'est-ce qui peut expliquer ça et comment corriger ?",
+      "expected_output": "Diagnostic : data loading trop lent, GIL Python dans la boucle, opérations CPU (numpy, metrics) dans le training step. Solutions : augmenter num_workers, déplacer les calculs sur GPU, torch.compile.",
+      "expectations": [
+        "Le data loading (num_workers, pin_memory) est identifié comme cause probable",
+        "Les opérations CPU dans la boucle (numpy, metrics, conversions) sont mentionnées",
+        "torch.compile est suggéré comme optimisation",
+        "optimizer.zero_grad(set_to_none=True) est mentionné",
+        "Une stratégie pour isoler la source (profiler avec DataLoader vide) est proposée"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "skill_name": "torch",
+    "skill_path": "/home/ysadowski/.claude/plugins/local/ml-skills/skills/torch",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-04-21T00:00:00Z",
+    "evals_run": [1, 2, 3],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "ResNet",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 34.6,
+        "tokens": 6680,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le code définit une classe nn.Module avec des blocs résiduels", "passed": true, "evidence": "ResBlock et ResNet définis comme nn.Module"},
+        {"text": "Chaque bloc utilise LayerNorm et GELU (pas BatchNorm ni ReLU)", "passed": true, "evidence": "LayerNorm pre-norm et GELU présents dans ResBlock"},
+        {"text": "Le dropout est fixé à 0.1", "passed": true, "evidence": "dropout=0.1 dans la signature et utilisé"},
+        {"text": "La couche finale produit 10 logits", "passed": true, "evidence": "Linear(256, 10) en tête"},
+        {"text": "Le nombre de paramètres trainables est calculé et affiché", "passed": true, "evidence": "One-liner sum/numel affiché"},
+        {"text": "Les submodules sont enregistrés avec nn.ModuleList ou nn.Sequential (pas une liste Python)", "passed": true, "evidence": "nn.ModuleList utilisé pour les 3 blocs"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "ResNet",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 28.1,
+        "tokens": 5446,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le code définit une classe nn.Module avec des blocs résiduels", "passed": true, "evidence": "ResNetMLP avec ResidualBlock définis"},
+        {"text": "Chaque bloc utilise LayerNorm et GELU (pas BatchNorm ni ReLU)", "passed": true, "evidence": "LayerNorm et GELU présents"},
+        {"text": "Le dropout est fixé à 0.1", "passed": true, "evidence": "dropout=0.1 dans les blocs"},
+        {"text": "La couche finale produit 10 logits", "passed": true, "evidence": "Linear(256, 10) en sortie"},
+        {"text": "Le nombre de paramètres trainables est calculé et affiché", "passed": true, "evidence": "count_trainable_params affiché"},
+        {"text": "Les submodules sont enregistrés avec nn.ModuleList ou nn.Sequential (pas une liste Python)", "passed": true, "evidence": "nn.ModuleList utilisé"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "CUDA debug",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 34.6,
+        "tokens": 6680,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le problème identifié est que les labels commencent à 1 au lieu de 0", "passed": true, "evidence": "Diagnostic explicite labels 1-10 vs attendu 0-9"},
+        {"text": "La commande CUDA_LAUNCH_BLOCKING=1 est mentionnée", "passed": true, "evidence": "CUDA_LAUNCH_BLOCKING=1 présent avec explication"},
+        {"text": "Une vérification avec targets.max() ou targets.min() est proposée", "passed": true, "evidence": "assertions min/max/dtype proposées"},
+        {"text": "La correction (soustraire 1 aux labels ou changer num_classes) est fournie", "passed": true, "evidence": "labels -= 1 et alternative num_classes=11 mentionnés"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "CUDA debug",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 28.1,
+        "tokens": 5446,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le problème identifié est que les labels commencent à 1 au lieu de 0", "passed": true, "evidence": "Diagnostic correct labels 1-indexed"},
+        {"text": "La commande CUDA_LAUNCH_BLOCKING=1 est mentionnée", "passed": true, "evidence": "Mentionné pour obtenir la vraie stacktrace"},
+        {"text": "Une vérification avec targets.max() ou targets.min() est proposée", "passed": true, "evidence": "Fonction check_labels() avec max/min"},
+        {"text": "La correction (soustraire 1 aux labels ou changer num_classes) est fournie", "passed": true, "evidence": "labels = labels - 1 fourni"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Checkpoint",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 34.6,
+        "tokens": 6680,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "torch.save sauvegarde un dict avec model_state_dict, optimizer_state_dict, scheduler_state_dict et epoch", "passed": true, "evidence": "Dict complet sauvegardé"},
+        {"text": "torch.load utilise weights_only=True", "passed": true, "evidence": "weights_only=True présent"},
+        {"text": "torch.load utilise map_location pour éviter les problèmes de device", "passed": true, "evidence": "map_location présent"},
+        {"text": "load_checkpoint restaure l'optimizer et le scheduler, pas seulement le modèle", "passed": true, "evidence": "Optimizer et scheduler restaurés"},
+        {"text": "La fonction retourne l'epoch et la métrique pour pouvoir reprendre", "passed": true, "evidence": "Retourne (epoch, metric) explicitement"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Checkpoint",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 28.1,
+        "tokens": 5446,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "torch.save sauvegarde un dict avec model_state_dict, optimizer_state_dict, scheduler_state_dict et epoch", "passed": true, "evidence": "Dict complet présent"},
+        {"text": "torch.load utilise weights_only=True", "passed": false, "evidence": "weights_only=True absent — risque sécurité non adressé"},
+        {"text": "torch.load utilise map_location pour éviter les problèmes de device", "passed": true, "evidence": "map_location présent"},
+        {"text": "load_checkpoint restaure l'optimizer et le scheduler, pas seulement le modèle", "passed": true, "evidence": "Optimizer et scheduler restaurés"},
+        {"text": "La fonction retourne l'epoch et la métrique pour pouvoir reprendre", "passed": false, "evidence": "Retourne le dict complet au lieu d'un tuple (epoch, metric)"}
+      ],
+      "notes": ["weights_only=True absent — pattern sécurité du skill non appliqué"]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 34.6, "stddev": 0.0, "min": 34.6, "max": 34.6},
+      "tokens": {"mean": 6680, "stddev": 0, "min": 6680, "max": 6680}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.87, "stddev": 0.19, "min": 0.6, "max": 1.0},
+      "time_seconds": {"mean": 28.1, "stddev": 0.0, "min": 28.1, "max": 28.1},
+      "tokens": {"mean": 5446, "stddev": 0, "min": 5446, "max": 5446}
+    },
+    "delta": {
+      "pass_rate": "+0.13",
+      "time_seconds": "+6.5",
+      "tokens": "+1234"
+    }
+  },
+  "notes": [
+    "Evals 1 et 2 (ResNet, CUDA debug) passent à 100% avec et sans skill — ces assertions ne discriminent pas l'apport du skill",
+    "Eval 3 (Checkpoint) est le seul discriminant : le skill apporte weights_only=True et un retour structuré (epoch, metric)",
+    "1 seul run par configuration — stddev non représentatif, relancer avec runs_per_configuration=3 pour des stats fiables"
+  ]
+}

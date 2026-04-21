@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Le problème est identifié comme spécifique à WSL2 et au multiprocessing fork",
+      "passed": true,
+      "evidence": "\"WSL2 utilise un noyau Linux virtualisé avec une implémentation partielle de `/dev/shm`\" et \"WSL2 est instable avec `fork` (défaut sur Linux) car l'état du processus parent peut être corrompu après le fork.\""
+    },
+    {
+      "text": "mp.set_start_method('spawn', force=True) est proposé comme solution principale",
+      "passed": true,
+      "evidence": "Section \"1. Changer la stratégie de multiprocessing\" : `mp.set_start_method('spawn', force=True)` proposé en premier, classé comme corrigeant le freeze dans ~80% des cas."
+    },
+    {
+      "text": "Le fallback num_workers=0 est mentionné si spawn ne règle pas le problème",
+      "passed": true,
+      "evidence": "Section \"Alternative : num_workers=0\" : `DataLoader(dataset, num_workers=0)` décrit comme \"Solution de dernier recours, 100% stable\" dans le tableau récapitulatif."
+    },
+    {
+      "text": "persistent_workers=True est mentionné comme paramètre utile",
+      "passed": true,
+      "evidence": "Section \"2. Passer à persistent_workers=True\" avec code explicite et explication : \"Sans `persistent_workers`, les workers sont recréés à chaque epoch — c'est lors de cette recréation que les freezes surviennent le plus souvent sous WSL2.\""
+    },
+    {
+      "text": "Une alternative de compensation (dataset en RAM ou cache) est suggérée",
+      "passed": false,
+      "evidence": "Aucune mention de dataset en RAM, CachedDataset, memmap ou stratégie de cache pour compenser num_workers=0. La section num_workers=0 mentionne uniquement la suppression des freezes sans proposer de compensation de performance."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

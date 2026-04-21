@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "torch.save sauvegarde un dict avec model_state_dict, optimizer_state_dict, scheduler_state_dict et epoch",
+      "passed": true,
+      "evidence": "torch.save({\"epoch\": epoch, \"model_state_dict\": model.state_dict(), \"optimizer_state_dict\": optimizer.state_dict(), \"scheduler_state_dict\": scheduler.state_dict(), \"metric\": metric}, path). Tous les champs requis présents."
+    },
+    {
+      "text": "torch.load utilise weights_only=True",
+      "passed": true,
+      "evidence": "ckpt = torch.load(path, map_location=device, weights_only=True) dans load_checkpoint."
+    },
+    {
+      "text": "torch.load utilise map_location pour éviter les problèmes de device",
+      "passed": true,
+      "evidence": "torch.load(path, map_location=device, weights_only=True) avec device passé en paramètre."
+    },
+    {
+      "text": "load_checkpoint restaure l'optimizer et le scheduler, pas seulement le modèle",
+      "passed": true,
+      "evidence": "optimizer.load_state_dict(ckpt[\"optimizer_state_dict\"]) et scheduler.load_state_dict(ckpt[\"scheduler_state_dict\"]) conditionnels si non None."
+    },
+    {
+      "text": "La fonction retourne l'epoch et la métrique pour pouvoir reprendre",
+      "passed": true,
+      "evidence": "return epoch, metric — la fonction retourne explicitement un tuple (int, float)."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

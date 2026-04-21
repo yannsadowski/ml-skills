@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-1-gpu-underutil",
+  "prompt": "Mon GPU (RTX 5090) tourne à 40% d'utilisation pendant l'entraînement. Comment je détermine si le bottleneck est le data loading ou le modèle ? Donne-moi les étapes concrètes.",
+  "assertions": [
+    "nvidia-smi ou nvidia-smi dmon est mentionné pour observer l'utilisation GPU en temps réel",
+    "Un benchmark du DataLoader seul (sans forward pass) est proposé pour mesurer le temps de chargement",
+    "La comparaison batch load time vs GPU step time est expliquée",
+    "La conclusion oriente vers data-optim si data loading > GPU step time",
+    "PyTorch Profiler ou record_function est mentionné pour un diagnostic plus fin"
+  ]
+}

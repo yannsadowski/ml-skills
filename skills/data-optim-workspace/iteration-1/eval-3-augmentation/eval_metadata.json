@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-3-augmentation",
+  "prompt": "Je fais de l'augmentation de données (random crop, flip, color jitter) dans mon Dataset.__getitem__. L'augmentation prend 80% du temps de chargement. Comment optimiser ça ?",
+  "assertions": [
+    "torchvision.transforms v2 ou kornia pour augmentation GPU est mentionné",
+    "La distinction CPU augmentation vs GPU augmentation est expliquée",
+    "L'option de pré-calculer (offline augmentation) est mentionnée pour les petits datasets",
+    "L'augmentation dans le collate_fn (après stack batch) est proposée pour réduire les appels",
+    "Le tradeoff mémoire/vitesse est abordé"
+  ]
+}

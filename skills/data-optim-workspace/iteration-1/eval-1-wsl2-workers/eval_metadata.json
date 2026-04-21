@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-1-wsl2-workers",
+  "prompt": "Mon DataLoader avec num_workers=4 freeze aléatoirement sous WSL2. Les workers semblent se bloquer après quelques epochs. Comment je règle ça ?",
+  "assertions": [
+    "Le problème est identifié comme spécifique à WSL2 et au multiprocessing fork",
+    "mp.set_start_method('spawn', force=True) est proposé comme solution principale",
+    "Le fallback num_workers=0 est mentionné si spawn ne règle pas le problème",
+    "persistent_workers=True est mentionné comme paramètre utile",
+    "Une alternative de compensation (dataset en RAM ou cache) est suggérée"
+  ]
+}

@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "dl-profiling", "runs": [{"id": "eval-1-gpu-underutil-with_skill", "prompt": "Mon GPU (RTX 5090) tourne \u00e0 40% d'utilisation pendant l'entra\u00eenement. Comment je d\u00e9termine si le bottleneck est le data loading ou le mod\u00e8le ? Donne-moi les \u00e9tapes concr\u00e8tes.", "eval_id": 1, "outputs": [{"name": "output.md", "type": "text", "content": "# T\u00e2che 1 \u2014 GPU \u00e0 40% d'utilisation : identifier le bottleneck\n\n## R\u00e8gle de base\n\nToujours profiler avant d'optimiser. Un GPU \u00e0 40% signifie que quelque chose starve le GPU \u2014 data loading ou preprocessing CPU sont les coupables les plus fr\u00e9quents.\n\n---\n\n## \u00c9tape 1 \u2014 Confirmer et qualifier l'utilisation GPU\n\nDans un terminal s\u00e9par\u00e9 pendant l'entra\u00eenement :\n\n```bash\n# Vue basique, rafra\u00eechissement toutes les 0.5s\nwatch -n 0.5 nvidia-smi\n\n# Vue streaming avec d\u00e9tail d'utilisation\nnvidia-smi dmon -s u\n```\n\nObserver le pattern :\n- **Utilisation qui oscille entre ~0% et ~80%** \u2192 la GPU attend des donn\u00e9es entre chaque step (data loading bottleneck).\n- **Utilisation stable \u00e0 ~40%** \u2192 la GPU travaille mais les kernels sont sous-utilis\u00e9s (petits batches, ops peu parall\u00e9lisables, overhead CPU).\n\n---\n\n## \u00c9tape 2 \u2014 Test de smoke : d\u00e9sactiver le data loading\n\nRemplacer temporairement le DataLoader par des tenseurs synth\u00e9tiques en m\u00e9moire GPU :\n\n```python\n# Cr\u00e9er un batch factice directement sur GPU\ndummy_input = torch.randn(batch_size, *input_shape, device=\"cuda\")\ndummy_target = torch.randint(0, n_classes, (batch_size,), device=\"cuda\")\n\n# Mesurer le throughput pur (sans I/O)\nimport time\ntorch.cuda.synchronize()\nt0 = time.perf_counter()\nfor _ in range(100):\n    output = model(dummy_input)\n    loss = criterion(output, dummy_target)\n    loss.backward()\n    optimizer.step()\n    optimizer.zero_grad()\ntorch.cuda.synchronize()\nt1 = time.perf_counter()\nprint(f\"Throughput sans data loading : {100 / (t1 - t0):.1f} steps/s\")\n```\n\nComparer avec le throughput r\u00e9el (avec DataLoader). Si le throughput monte significativement avec les donn\u00e9es synth\u00e9tiques \u2192 **le data loading est le bottleneck**. Sinon \u2192 le bottleneck est dans le mod\u00e8le/compute.\n\n---\n\n## \u00c9tape 3 \u2014 PyTorch Profiler pour confirmer\n\nInt\u00e9grer le profiler sur quelques steps pour voir la r\u00e9partition CPU vs CUDA :\n\n```python\nimport torch\nfrom torch.profiler import profile, record_function, ProfilerActivity\n\nwith profile(\n    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],\n    schedule=torch.profiler.schedule(wait=1, warmup=2, active=5),\n    on_trace_ready=torch.profiler.tensorboard_trace_handler(\"./prof_logs\"),\n    record_shapes=True,\n    with_stack=True,\n) as prof:\n    for step, (inputs, targets) in enumerate(dataloader):\n        inputs, targets = inputs.cuda(), targets.cuda()\n        with record_function(\"forward\"):\n            output = model(inputs)\n        with record_function(\"loss\"):\n            loss = criterion(output, targets)\n        with record_function(\"backward\"):\n            loss.backward()\n        with record_function(\"optimizer\"):\n            optimizer.step()\n            optimizer.zero_grad()\n        prof.step()\n        if step >= 8:\n            break\n\nprint(prof.key_averages().table(sort_by=\"cuda_time_total\", row_limit=15))\n```\n\nLire la trace dans Chrome : ouvrir `chrome://tracing` et charger le `.json` depuis `./prof_logs/`.\n\n### Ce qu'on cherche dans la trace\n\n- **Grands blancs sur la timeline CUDA** entre les steps \u2192 la GPU attend le CPU (data loading).\n- **`cpu_time_total` >> `cuda_time_total`** sur les ops \u2192 overhead CPU ou kernel launch excessif.\n- **Beaucoup de `aten::copy_`** \u2192 transfers host\u2192device inutiles ou r\u00e9p\u00e9t\u00e9s.\n\n---\n\n## \u00c9tape 4 \u2014 Diagnostic data loading sp\u00e9cifique\n\nSi l'\u00e9tape 2 confirme que le data loading est en cause :\n\n```python\n# Mesurer le temps de chargement pur\nimport time\nloader_iter = iter(dataloader)\ntimes = []\nfor _ in range(50):\n    t0 = time.perf_counter()\n    batch = next(loader_iter)\n    t1 = time.perf_counter()\n    times.append(t1 - t0)\n\nimport statistics\nprint(f\"Temps moyen par batch : {statistics.mean(times)*1000:.1f} ms\")\nprint(f\"M\u00e9diane               : {statistics.median(times)*1000:.1f} ms\")\nprint(f\"Max                   : {max(times)*1000:.1f} ms\")\n```\n\nSi le temps de chargement est > au temps de forward+backward \u2192 data pipeline est le bottleneck (voir `data-optim` skill pour les solutions).\n\n---\n\n## R\u00e9sum\u00e9 d\u00e9cisionnel\n\n| Observation | Cause probable | Action |\n|---|---|---|\n| GPU oscille 0%\u219480% | Data loading trop lent | Augmenter `num_workers`, `pin_memory=True`, prefetch |\n| GPU stable ~40%, dummy batch = ~40% | Mod\u00e8le sous-utilis\u00e9 | Augmenter batch size, torch.compile, bfloat16 |\n| GPU stable ~40%, dummy batch = ~100% | Data loading bottleneck | Optimiser DataLoader |\n| Beaucoup de `aten::copy_` dans le profiler | Transfers D\u2192H inutiles | V\u00e9rifier `.cpu()` ou `.numpy()` dans la loop |\n\n---\n\n## Notes RTX 5090 (Blackwell sm_100)\n\n- `torch.set_float32_matmul_precision('high')` active TF32 \u2014 gain ~2x sur matmul, \u00e0 activer d\u00e8s le d\u00e9but.\n- `torch.compile(model, mode=\"reduce-overhead\")` peut donner 2-4x de speedup en fusionnant les kernels.\n- `bfloat16` est natif sur Blackwell, pas d'\u00e9mulation. Tester avec `model.to(torch.bfloat16)` peut doubler le throughput.\n"}], "grading": {"expectations": [{"text": "nvidia-smi ou nvidia-smi dmon est mentionn\u00e9 pour observer l'utilisation GPU en temps r\u00e9el", "passed": true, "evidence": "Les deux commandes sont pr\u00e9sentes \u00e0 l'\u00e9tape 1 : 'watch -n 0.5 nvidia-smi' et 'nvidia-smi dmon -s u'."}, {"text": "Un benchmark du DataLoader seul (sans forward pass) est propos\u00e9 pour mesurer le temps de chargement", "passed": true, "evidence": "L'\u00e9tape 4 propose un benchmark isol\u00e9 du DataLoader avec 'next(loader_iter)' dans une boucle pour mesurer le temps par batch, sans aucun forward pass."}, {"text": "La comparaison batch load time vs GPU step time est expliqu\u00e9e", "passed": true, "evidence": "L'\u00e9tape 4 conclut : 'Si le temps de chargement est > au temps de forward+backward \u2192 data pipeline est le bottleneck'."}, {"text": "La conclusion oriente vers data-optim si data loading > GPU step time", "passed": true, "evidence": "Mention explicite : 'voir data-optim skill pour les solutions' quand le temps de chargement d\u00e9passe le forward+backward."}, {"text": "PyTorch Profiler ou record_function est mentionn\u00e9 pour un diagnostic plus fin", "passed": true, "evidence": "L'\u00e9tape 3 int\u00e8gre torch.profiler avec record_function pour forward, loss, backward et optimizer, avec tensorboard_trace_handler."}], "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-1-gpu-underutil-without_skill", "prompt": "Mon GPU (RTX 5090) tourne \u00e0 40% d'utilisation pendant l'entra\u00eenement. Comment je d\u00e9termine si le bottleneck est le data loading ou le mod\u00e8le ? Donne-moi les \u00e9tapes concr\u00e8tes.", "eval_id": 1, "outputs": [{"name": "output.md", "type": "text", "content": "# Diagnostiquer un bottleneck : Data Loading vs Mod\u00e8le (GPU \u00e0 40%)\n\n## Contexte\n\nUn GPU RTX 5090 \u00e0 40% d'utilisation pendant l'entra\u00eenement est un signal clair de sous-utilisation. La cause principale est presque toujours un bottleneck en data loading (le CPU ne fournit pas les donn\u00e9es assez vite), mais il peut aussi s'agir d'un mod\u00e8le trop petit ou de transfers CPU-GPU fr\u00e9quents.\n\n---\n\n## \u00c9tape 1 : Observer nvidia-smi en temps r\u00e9el\n\nLance cette commande dans un terminal s\u00e9par\u00e9 pendant l'entra\u00eenement :\n\n```bash\nwatch -n 0.5 nvidia-smi\n```\n\nObserve :\n- **GPU-Util** : si elle oscille entre 0% et 80% par rafales, c'est typiquement du data loading.\n- Si elle est stable autour de 40%, le mod\u00e8le est trop petit ou le batch size trop faible.\n\nPour un monitoring plus fin :\n\n```bash\nnvidia-smi dmon -s u -d 1\n```\n\n---\n\n## \u00c9tape 2 : D\u00e9sactiver temporairement le data loading\n\nRemplace ton DataLoader par des donn\u00e9es factices (tenseurs al\u00e9atoires pr\u00e9-g\u00e9n\u00e9r\u00e9s en GPU) :\n\n```python\nimport torch\n\n# Donn\u00e9es factices pr\u00e9-allou\u00e9es en GPU\ndummy_input = torch.randn(batch_size, *input_shape, device='cuda')\ndummy_target = torch.randint(0, num_classes, (batch_size,), device='cuda')\n\n# Remplace ta boucle normale par :\nfor i in range(num_steps):\n    optimizer.zero_grad()\n    output = model(dummy_input)\n    loss = criterion(output, dummy_target)\n    loss.backward()\n    optimizer.step()\n```\n\n**Interpr\u00e9tation :**\n- Si le GPU monte \u00e0 90%+ avec les donn\u00e9es factices \u2192 **bottleneck = data loading**\n- Si le GPU reste \u00e0 ~40% avec les donn\u00e9es factices \u2192 **bottleneck = mod\u00e8le trop petit ou batch size trop faible**\n\n---\n\n## \u00c9tape 3 : Mesurer le temps de chaque phase\n\nInstrumente ta boucle d'entra\u00eenement pour mesurer explicitement :\n\n```python\nimport time\nimport torch\n\ndata_times = []\ncompute_times = []\n\nfor batch in dataloader:\n    # Mesure du data loading\n    t0 = time.perf_counter()\n    inputs, targets = batch\n    inputs = inputs.to('cuda', non_blocking=True)\n    targets = targets.to('cuda', non_blocking=True)\n    torch.cuda.synchronize()  # Attendre que le transfer soit termin\u00e9\n    t1 = time.perf_counter()\n    data_times.append(t1 - t0)\n\n    # Mesure du compute\n    optimizer.zero_grad()\n    output = model(inputs)\n    loss = criterion(output, targets)\n    loss.backward()\n    optimizer.step()\n    torch.cuda.synchronize()  # Attendre la fin du calcul GPU\n    t2 = time.perf_counter()\n    compute_times.append(t2 - t1)\n\navg_data = sum(data_times) / len(data_times)\navg_compute = sum(compute_times) / len(compute_times)\nprint(f\"Data loading moyen : {avg_data*1000:.1f} ms\")\nprint(f\"Compute moyen      : {avg_compute*1000:.1f} ms\")\nprint(f\"Ratio data/compute : {avg_data/avg_compute:.2f}x\")\n```\n\n**Interpr\u00e9tation :**\n- Ratio > 1 \u2192 data loading est le bottleneck\n- Ratio < 0.1 \u2192 le mod\u00e8le est probablement trop simple pour justifier le GPU\n\n---\n\n## \u00c9tape 4 : Utiliser PyTorch Profiler pour confirmer\n\n```python\nfrom torch.profiler import profile, record_function, ProfilerActivity\n\nwith profile(\n    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],\n    record_shapes=True,\n    with_stack=False\n) as prof:\n    for step, batch in enumerate(dataloader):\n        if step >= 10:\n            break\n        inputs, targets = batch\n        inputs = inputs.to('cuda')\n        with record_function(\"forward\"):\n            output = model(inputs)\n        with record_function(\"loss\"):\n            loss = criterion(output, targets)\n        with record_function(\"backward\"):\n            loss.backward()\n        optimizer.step()\n        optimizer.zero_grad()\n        prof.step()\n\nprint(prof.key_averages().table(sort_by=\"cuda_time_total\", row_limit=20))\n```\n\nCherche dans la sortie :\n- `DataLoader` ou `_worker_loop` avec beaucoup de temps CPU \u2192 bottleneck data loading\n- Gaps entre les op\u00e9rations CUDA \u2192 idle time d\u00fb \u00e0 l'attente de donn\u00e9es\n\n---\n\n## \u00c9tape 5 : Solutions selon le diagnostic\n\n### Si c'est le data loading :\n\n```python\nfrom torch.utils.data import DataLoader\n\nloader = DataLoader(\n    dataset,\n    batch_size=batch_size,\n    num_workers=8,          # Augmenter (r\u00e8gle : 4x nombre de GPU)\n    pin_memory=True,        # Copies CPU->GPU plus rapides\n    prefetch_factor=4,      # Prefetch plus de batches en avance\n    persistent_workers=True # \u00c9vite de recr\u00e9er les workers \u00e0 chaque epoch\n)\n```\n\nAussi envisager :\n- Pr\u00e9-calculer et cacher les augmentations si elles sont co\u00fbteuses\n- Utiliser NVIDIA DALI pour les pipelines d'augmentation sur GPU\n- Stocker les donn\u00e9es en format binaire (HDF5, LMDB, webdataset) plut\u00f4t que des images JPEG individuelles\n\n### Si c'est le mod\u00e8le trop petit :\n\n- Augmenter le `batch_size` (tant que \u00e7a tient en VRAM)\n- Utiliser `torch.compile()` (PyTorch 2.0+) pour fusionner les op\u00e9rations\n- Passer en mixed precision : `torch.autocast('cuda', dtype=torch.float16)`\n\n---\n\n## Checklist de diagnostic rapide\n\n| Test | GPU-Util r\u00e9sultant | Conclusion |\n|------|--------------------|------------|\n| Donn\u00e9es factices GPU | 90%+ | Bottleneck = data loading |\n| Donn\u00e9es factices GPU | ~40% | Bottleneck = mod\u00e8le/batch |\n| Temps data >> temps compute | - | Augmenter num_workers, pin_memory |\n| Temps data << temps compute | - | Augmenter batch size ou compiler le mod\u00e8le |\n"}], "grading": {"expectations": [{"text": "nvidia-smi ou nvidia-smi dmon est mentionn\u00e9 pour observer l'utilisation GPU en temps r\u00e9el", "passed": true, "evidence": "L'\u00e9tape 1 mentionne 'watch -n 0.5 nvidia-smi' et 'nvidia-smi dmon -s u -d 1'."}, {"text": "Un benchmark du DataLoader seul (sans forward pass) est propos\u00e9 pour mesurer le temps de chargement", "passed": false, "evidence": "L'\u00e9tape 3 mesure data_times en incluant le .to('cuda') et la synchronisation, mais pas de benchmark isol\u00e9 du DataLoader sans forward pass. La mesure de data loading est int\u00e9gr\u00e9e \u00e0 la boucle d'entra\u00eenement compl\u00e8te, pas en standalone."}, {"text": "La comparaison batch load time vs GPU step time est expliqu\u00e9e", "passed": true, "evidence": "L'\u00e9tape 3 calcule et affiche 'Data loading moyen' vs 'Compute moyen' avec un ratio, et explique l'interpr\u00e9tation (ratio > 1 = data bottleneck)."}, {"text": "La conclusion oriente vers data-optim si data loading > GPU step time", "passed": true, "evidence": "La section 'Solutions selon le diagnostic' propose des corrections DataLoader (num_workers, pin_memory, prefetch_factor) quand le ratio data/compute > 1."}, {"text": "PyTorch Profiler ou record_function est mentionn\u00e9 pour un diagnostic plus fin", "passed": true, "evidence": "L'\u00e9tape 4 utilise torch.profiler avec profile(), record_function pour forward/loss/backward, et prof.step()."}], "summary": {"passed": 4, "failed": 1, "total": 5, "pass_rate": 0.8}}}, {"id": "eval-2-pytorch-profiler-with_skill", "prompt": "Je veux profiler mon training loop avec PyTorch Profiler pour voir quelles op\u00e9rations prennent le plus de temps. Montre-moi comment l'int\u00e9grer dans ma boucle d'entra\u00eenement existante.", "eval_id": 2, "outputs": [{"name": "output.md", "type": "text", "content": "# T\u00e2che 2 \u2014 Int\u00e9grer PyTorch Profiler dans une boucle d'entra\u00eenement\n\n## Principe\n\nPyTorch Profiler enregistre les op\u00e9rations CPU et CUDA sur une fen\u00eatre de steps configurable. On utilise un `schedule` pour \u00e9viter de profiler le warmup JIT/CUDA et ne capturer que des steps repr\u00e9sentatifs.\n\n---\n\n## Int\u00e9gration compl\u00e8te dans une boucle existante\n\n### Avant (boucle sans profiler)\n\n```python\nfor epoch in range(num_epochs):\n    for step, (inputs, targets) in enumerate(dataloader):\n        inputs, targets = inputs.cuda(), targets.cuda()\n        \n        optimizer.zero_grad()\n        output = model(inputs)\n        loss = criterion(output, targets)\n        loss.backward()\n        optimizer.step()\n```\n\n### Apr\u00e8s (avec PyTorch Profiler)\n\n```python\nimport torch\nfrom torch.profiler import profile, record_function, ProfilerActivity\n\n# Wrapper de profiling \u2014 \u00e0 appeler sur quelques steps seulement\ndef profile_training_step(model, dataloader, optimizer, criterion,\n                           n_warmup=2, n_active=5):\n    \"\"\"\n    Profile n_warmup + n_active steps.\n    wait=1 : skip 1 step (let CUDA warm up)\n    warmup=n_warmup : collect but discard (JIT tracing)\n    active=n_active : steps r\u00e9ellement enregistr\u00e9s\n    \"\"\"\n    with profile(\n        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],\n        schedule=torch.profiler.schedule(\n            wait=1,\n            warmup=n_warmup,\n            active=n_active,\n            repeat=1,\n        ),\n        on_trace_ready=torch.profiler.tensorboard_trace_handler(\"./prof_logs\"),\n        record_shapes=True,\n        profile_memory=True,\n        with_stack=True,\n    ) as prof:\n        loader_iter = iter(dataloader)\n        for step in range(1 + n_warmup + n_active):\n            inputs, targets = next(loader_iter)\n            inputs, targets = inputs.cuda(), targets.cuda()\n\n            with record_function(\"forward\"):\n                output = model(inputs)\n\n            with record_function(\"loss_compute\"):\n                loss = criterion(output, targets)\n\n            with record_function(\"backward\"):\n                loss.backward()\n\n            with record_function(\"optimizer_step\"):\n                optimizer.step()\n                optimizer.zero_grad()\n\n            prof.step()  # IMPORTANT : appeler \u00e0 la fin de chaque step\n\n    # Afficher le top 15 des ops par temps CUDA\n    print(prof.key_averages().table(\n        sort_by=\"cuda_time_total\",\n        row_limit=15,\n    ))\n    return prof\n\n\n# Dans la boucle d'entra\u00eenement principale\nfor epoch in range(num_epochs):\n    for step, (inputs, targets) in enumerate(dataloader):\n        \n        # Profiler uniquement au step 0 du premier epoch\n        if epoch == 0 and step == 0:\n            prof = profile_training_step(model, dataloader, optimizer, criterion)\n            continue  # les steps profil\u00e9s sont d\u00e9j\u00e0 consomm\u00e9s\n        \n        # Boucle normale\n        inputs, targets = inputs.cuda(), targets.cuda()\n        optimizer.zero_grad()\n        output = model(inputs)\n        loss = criterion(output, targets)\n        loss.backward()\n        optimizer.step()\n```\n\n---\n\n## Lire les r\u00e9sultats\n\n### Table console\n\n```\n-----------------------------------------  -----------  -----------  -----------\nName                                       CPU total    CUDA total   # of Calls\n-----------------------------------------  -----------  -----------  -----------\nforward                                    12.345 ms    45.678 ms    5\naten::linear                               2.100 ms     38.200 ms    25\naten::relu                                 0.050 ms     1.200 ms     25\nbackward                                   8.200 ms     42.100 ms    5\naten::copy_                                5.100 ms     0.300 ms     150   \u2190 RED FLAG\n```\n\n### Colonnes cl\u00e9s \u00e0 surveiller\n\n| Colonne | Ce qu'elle mesure | Red flag |\n|---|---|---|\n| `self_cuda_time_total` | Temps CUDA de cet op, hors enfants | Op qui domine = cible d'optimisation |\n| `cuda_time_total` | Temps CUDA en incluant les enfants | Pour comparer forward/backward |\n| `cpu_time_total` | Temps c\u00f4t\u00e9 host (scheduling) | \u00c9lev\u00e9 = kernel launch overhead |\n| `# of Calls` | Nombre d'appels | Tr\u00e8s \u00e9lev\u00e9 = fusing potentiel |\n\n### Red flags courants\n\n- **Beaucoup de `aten::copy_`** \u2192 transfers host\u2194device inutiles (v\u00e9rifier `.cpu()`, `.numpy()`, ou cr\u00e9ation de tenseurs hors GPU).\n- **`cpu_time_total` >> `cuda_time_total`** sur les ops GPU \u2192 overhead de lancement de kernels (trop de petits ops : envisager `torch.compile`).\n- **`aten::to` r\u00e9p\u00e9t\u00e9** \u2192 cast de dtype \u00e0 chaque step (caster le mod\u00e8le une fois pour toutes).\n\n---\n\n## Visualiser la trace Chrome\n\n```bash\n# Les logs sont dans ./prof_logs/\n# Ouvrir Chrome et aller sur :\nchrome://tracing\n\n# Cliquer \"Load\" et charger le fichier .json g\u00e9n\u00e9r\u00e9\n```\n\nLa timeline montre les streams CPU et CUDA c\u00f4te \u00e0 c\u00f4te. Les trous sur le stream CUDA indiquent que la GPU attend.\n\n## Visualiser avec TensorBoard\n\n```bash\nuv run tensorboard --logdir ./prof_logs\n# Ouvrir http://localhost:6006 \u2192 onglet \"PyTorch Profiler\"\n```\n\n---\n\n## Profiling l\u00e9ger (forward pass uniquement)\n\nPour un timing rapide sans le profiler complet :\n\n```python\nimport time\n\ndef time_forward(model, x, n_runs=100, warmup=10):\n    model.eval()\n    with torch.no_grad():\n        for _ in range(warmup):\n            _ = model(x)\n        torch.cuda.synchronize()  # attendre la fin des kernels CUDA\n\n        t0 = time.perf_counter()\n        for _ in range(n_runs):\n            _ = model(x)\n        torch.cuda.synchronize()  # OBLIGATOIRE avant de stopper le timer\n        t1 = time.perf_counter()\n\n    ms = (t1 - t0) / n_runs * 1000\n    print(f\"Forward pass : {ms:.2f} ms\")\n    return ms\n\nx = torch.randn(batch_size, *input_shape, device=\"cuda\")\ntime_forward(model, x)\n```\n\n**Attention :** sans `torch.cuda.synchronize()` avant d'arr\u00eater le timer, on mesure le lancement des kernels (quelques \u00b5s), pas leur ex\u00e9cution r\u00e9elle.\n\n---\n\n## Checklist\n\n```\n[ ] prof.step() appel\u00e9 \u00e0 la fin de chaque step (pas au d\u00e9but)\n[ ] torch.cuda.synchronize() avant tout timing manuel\n[ ] record_function() autour de forward / backward / optimizer pour granularit\u00e9\n[ ] Inspecter self_cuda_time_total en priorit\u00e9 (temps r\u00e9el du kernel)\n[ ] Chercher aten::copy_ en grand nombre \u2192 data movement inutile\n[ ] Comparer avec torch.compile(model) \u2014 souvent 2-4x sur RTX 5090\n```\n"}], "grading": {"expectations": [{"text": "torch.profiler.profile est utilis\u00e9 comme context manager", "passed": true, "evidence": "La fonction profile_training_step utilise 'with profile(...) as prof:' comme context manager."}, {"text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus", "passed": true, "evidence": "activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA] est explicitement configur\u00e9 dans le profile()."}, {"text": "Un schedule avec wait, warmup, et active est configur\u00e9", "passed": true, "evidence": "schedule=torch.profiler.schedule(wait=1, warmup=n_warmup, active=n_active, repeat=1) est configur\u00e9 avec les trois param\u00e8tres requis."}, {"text": "prof.step() est appel\u00e9 \u00e0 chaque it\u00e9ration", "passed": true, "evidence": "prof.step() est appel\u00e9 \u00e0 la fin de chaque step dans la boucle, avec un commentaire 'IMPORTANT : appeler \u00e0 la fin de chaque step'."}, {"text": "record_function est utilis\u00e9 pour annoter forward, backward, et optimizer", "passed": true, "evidence": "record_function est utilis\u00e9 pour 'forward', 'loss_compute', 'backward', et 'optimizer_step' dans la boucle profil\u00e9e."}, {"text": "tensorboard_trace_handler ou export_chrome_trace est utilis\u00e9 pour visualiser", "passed": true, "evidence": "on_trace_ready=torch.profiler.tensorboard_trace_handler('./prof_logs') est configur\u00e9. La visualisation via chrome://tracing et TensorBoard est \u00e9galement document\u00e9e."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-2-pytorch-profiler-without_skill", "prompt": "Je veux profiler mon training loop avec PyTorch Profiler pour voir quelles op\u00e9rations prennent le plus de temps. Montre-moi comment l'int\u00e9grer dans ma boucle d'entra\u00eenement existante.", "eval_id": 2, "outputs": [{"name": "output.md", "type": "text", "content": "# Int\u00e9grer PyTorch Profiler dans une boucle d'entra\u00eenement\n\n## Vue d'ensemble\n\nPyTorch Profiler permet de mesurer pr\u00e9cis\u00e9ment le temps pass\u00e9 sur chaque op\u00e9ration, tant c\u00f4t\u00e9 CPU que GPU, et de visualiser les r\u00e9sultats dans TensorBoard ou en console.\n\n---\n\n## Int\u00e9gration minimale dans une boucle existante\n\nVoici une boucle d'entra\u00eenement typique **avant** instrumentation :\n\n```python\nfor epoch in range(num_epochs):\n    for batch_idx, (inputs, targets) in enumerate(dataloader):\n        inputs, targets = inputs.to(device), targets.to(device)\n        optimizer.zero_grad()\n        outputs = model(inputs)\n        loss = criterion(outputs, targets)\n        loss.backward()\n        optimizer.step()\n```\n\n### Version instrument\u00e9e avec PyTorch Profiler :\n\n```python\nimport torch\nfrom torch.profiler import profile, record_function, ProfilerActivity, schedule\n\n# D\u00e9finir le schedule : quand capturer les traces\nprofiler_schedule = schedule(\n    wait=1,     # \u00c9tapes d'attente initiale (warm-up)\n    warmup=1,   # \u00c9tapes de warm-up (captur\u00e9es mais ignor\u00e9es)\n    active=3,   # \u00c9tapes effectivement profil\u00e9es\n    repeat=1    # Nombre de cycles (0 = r\u00e9p\u00e9ter ind\u00e9finiment)\n)\n\ndef on_trace_ready(prof):\n    \"\"\"Callback appel\u00e9 apr\u00e8s chaque cycle actif.\"\"\"\n    print(prof.key_averages().table(\n        sort_by=\"cuda_time_total\",\n        row_limit=15\n    ))\n    # Optionnel : exporter pour TensorBoard\n    prof.export_chrome_trace(f\"trace_step_{prof.step_num}.json\")\n\nwith profile(\n    activities=[\n        ProfilerActivity.CPU,\n        ProfilerActivity.CUDA,\n    ],\n    schedule=profiler_schedule,\n    on_trace_ready=on_trace_ready,\n    record_shapes=True,       # Capture les shapes des tenseurs\n    profile_memory=True,      # Mesure l'utilisation m\u00e9moire GPU\n    with_stack=False,         # Stack traces (co\u00fbteux, activer si besoin)\n) as prof:\n\n    for epoch in range(num_epochs):\n        for batch_idx, (inputs, targets) in enumerate(dataloader):\n\n            # Annoter les phases pour plus de lisibilit\u00e9\n            with record_function(\"data_transfer\"):\n                inputs = inputs.to(device, non_blocking=True)\n                targets = targets.to(device, non_blocking=True)\n\n            with record_function(\"forward_pass\"):\n                optimizer.zero_grad()\n                outputs = model(inputs)\n\n            with record_function(\"loss_computation\"):\n                loss = criterion(outputs, targets)\n\n            with record_function(\"backward_pass\"):\n                loss.backward()\n\n            with record_function(\"optimizer_step\"):\n                optimizer.step()\n\n            # IMPORTANT : appeler prof.step() \u00e0 chaque it\u00e9ration\n            prof.step()\n```\n\n---\n\n## Lire les r\u00e9sultats en console\n\nLa sortie de `key_averages().table()` ressemble \u00e0 :\n\n```\n---------------------------------  ------------  ------------  ------------\n                             Name    CPU total %    CPU total    CUDA total\n---------------------------------  ------------  ------------  ------------\n                      aten::addmm        12.34%       5.678ms       3.210ms\n                forward_pass           45.67%      21.000ms      18.500ms\n             aten::_batch_norm_impl     8.90%       4.100ms       3.800ms\n                   backward_pass       38.00%      17.500ms      15.200ms\n                    data_transfer        2.10%       0.967ms       0.450ms\n---------------------------------  ------------  ------------  ------------\n```\n\n**Colonnes importantes :**\n- `CPU total` : temps pass\u00e9 \u00e0 orchestrer l'op\u00e9ration c\u00f4t\u00e9 CPU\n- `CUDA total` : temps r\u00e9el d'ex\u00e9cution sur le GPU\n- Si `CPU total >> CUDA total` : overhead CPU excessif\n- Si `CUDA total` est dominant sur les op\u00e9rations attendues : normal\n\n---\n\n## Visualiser avec TensorBoard\n\n```python\nfrom torch.profiler import tensorboard_trace_handler\n\nwith profile(\n    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],\n    schedule=schedule(wait=1, warmup=1, active=5),\n    on_trace_ready=tensorboard_trace_handler('./profiler_logs'),\n    record_shapes=True,\n    profile_memory=True,\n) as prof:\n    for batch_idx, (inputs, targets) in enumerate(dataloader):\n        # ... boucle normale ...\n        prof.step()\n```\n\nPuis lancer TensorBoard :\n\n```bash\ntensorboard --logdir=./profiler_logs\n```\n\nNaviguer vers l'onglet **\"PyTorch Profiler\"** pour voir :\n- La timeline GPU/CPU (Trace View)\n- Le classement des op\u00e9rations les plus co\u00fbteuses\n- L'utilisation m\u00e9moire dans le temps\n\n---\n\n## Version l\u00e9g\u00e8re pour un profiling ponctuel (sans schedule)\n\nPour profiler juste quelques batches rapidement, sans schedule :\n\n```python\nwith profile(\n    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],\n    record_shapes=True,\n) as prof:\n    for batch_idx, (inputs, targets) in enumerate(dataloader):\n        if batch_idx >= 5:  # Profiler seulement 5 batches\n            break\n        inputs, targets = inputs.to(device), targets.to(device)\n        outputs = model(inputs)\n        loss = criterion(outputs, targets)\n        loss.backward()\n        optimizer.step()\n\n# Afficher les 20 op\u00e9rations les plus co\u00fbteuses en temps CUDA\nprint(prof.key_averages().table(sort_by=\"cuda_time_total\", row_limit=20))\n\n# Exporter la trace Chrome (ouvrir dans chrome://tracing ou Perfetto)\nprof.export_chrome_trace(\"training_trace.json\")\n```\n\n---\n\n## Annoter des sections personnalis\u00e9es avec record_function\n\n`record_function` cr\u00e9e des spans nomm\u00e9s visibles dans la trace :\n\n```python\nfrom torch.profiler import record_function\n\n# Utilisation comme context manager\nwith record_function(\"my_custom_forward\"):\n    output = model(input)\n\n# Peut \u00eatre imbriqu\u00e9\nwith record_function(\"augmentation\"):\n    x = augment(x)\n    with record_function(\"normalize\"):\n        x = normalize(x)\n```\n\n---\n\n## Bonnes pratiques\n\n1. **Toujours utiliser `prof.step()`** \u00e0 la fin de chaque it\u00e9ration de boucle, sinon le schedule ne fonctionne pas.\n2. **Limiter le profiling** \u00e0 quelques dizaines de steps : le profiler lui-m\u00eame ajoute un overhead non n\u00e9gligeable.\n3. **`torch.cuda.synchronize()`** n'est pas n\u00e9cessaire avec le profiler car il synchronise automatiquement.\n4. **D\u00e9sactiver en production** : entourer le bloc `profile` d'un flag `if args.profile:`.\n5. **`profile_memory=True`** est utile pour diagnostiquer les OOM mais ralentit davantage le profiling.\n\n---\n\n## Interpr\u00e9ter les r\u00e9sultats : que chercher ?\n\n| Observation | Cause probable | Action |\n|-------------|----------------|--------|\n| `data_transfer` \u00e9lev\u00e9 | Transfers CPU->GPU fr\u00e9quents | `pin_memory=True`, `non_blocking=True` |\n| Gaps dans la timeline CUDA | Idle time, data starvation | Augmenter `num_workers` |\n| `aten::copy_` omnipr\u00e9sent | Copies m\u00e9moire excessives | R\u00e9duire les `.clone()` et `.contiguous()` inutiles |\n| Op\u00e9rations CPU longues | Pas de mixed precision | Activer `torch.autocast` |\n| `cudnn_convolution` dominant | Normal pour CNN | V\u00e9rifier que cuDNN benchmark est activ\u00e9 |\n"}], "grading": {"expectations": [{"text": "torch.profiler.profile est utilis\u00e9 comme context manager", "passed": true, "evidence": "'with profile(...) as prof:' est utilis\u00e9 comme context manager dans l'exemple principal."}, {"text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus", "passed": true, "evidence": "activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA] est explicitement pr\u00e9sent dans les exemples."}, {"text": "Un schedule avec wait, warmup, et active est configur\u00e9", "passed": true, "evidence": "profiler_schedule = schedule(wait=1, warmup=1, active=3, repeat=1) est configur\u00e9 avec les trois param\u00e8tres requis."}, {"text": "prof.step() est appel\u00e9 \u00e0 chaque it\u00e9ration", "passed": true, "evidence": "prof.step() est appel\u00e9 \u00e0 chaque it\u00e9ration avec le commentaire 'IMPORTANT : appeler prof.step() \u00e0 chaque it\u00e9ration'. \u00c9galement mentionn\u00e9 dans les bonnes pratiques."}, {"text": "record_function est utilis\u00e9 pour annoter forward, backward, et optimizer", "passed": true, "evidence": "record_function est utilis\u00e9 pour 'data_transfer', 'forward_pass', 'loss_computation', 'backward_pass', et 'optimizer_step'. Forward et backward sont couverts."}, {"text": "tensorboard_trace_handler ou export_chrome_trace est utilis\u00e9 pour visualiser", "passed": true, "evidence": "Les deux m\u00e9thodes sont pr\u00e9sentes : tensorboard_trace_handler('./profiler_logs') dans la section TensorBoard, et prof.export_chrome_trace('training_trace.json') dans la version l\u00e9g\u00e8re."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-3-cpu-bottleneck-with_skill", "prompt": "Mon profiling montre que 60% du temps est en CPU et seulement 40% en GPU. Le mod\u00e8le est un simple MLP. Qu'est-ce qui peut expliquer \u00e7a et comment corriger ?", "eval_id": 3, "outputs": [{"name": "output.md", "type": "text", "content": "# T\u00e2che 3 \u2014 60% CPU / 40% GPU sur un MLP : causes et corrections\n\n## Contexte\n\nUn MLP simple sur RTX 5090 avec 60% du temps en CPU et seulement 40% en GPU est un signe clair de **kernel launch overhead** ou de **data movement excessif**. Un MLP n'est pas compute-intensive par nature \u2014 les ops sont rapides, ce qui rend l'overhead CPU relativement plus important.\n\n---\n\n## Causes probables\n\n### 1. Trop de petites op\u00e9rations (kernel launch overhead)\n\nUn MLP applique successivement Linear \u2192 Activation \u2192 Linear \u2192 ... Chaque couche g\u00e9n\u00e8re plusieurs kernels CUDA s\u00e9par\u00e9s. Si le MLP est petit (ex. 512\u2192256\u2192128), chaque kernel prend quelques \u00b5s mais le lancement CPU en prend autant \u2014 le ratio overhead/compute est d\u00e9favorable.\n\n**Signal dans le profiler :** `cpu_time_total` \u00e9lev\u00e9 sur des ops GPU comme `aten::addmm`, `aten::relu_`.\n\n### 2. Transfers host\u2192device \u00e0 chaque step\n\nSi les inputs ou les targets sont recr\u00e9\u00e9s ou cast\u00e9s c\u00f4t\u00e9 CPU \u00e0 chaque step, PyTorch g\u00e9n\u00e8re des `aten::copy_` (memcpy H\u2192D) qui bloquent le pipeline.\n\n**Signal dans le profiler :** beaucoup d'appels \u00e0 `aten::copy_`, `aten::to`, ou `cudaMemcpyAsync` avec un `cpu_time_total` \u00e9lev\u00e9.\n\n### 3. Donn\u00e9es non \u00e9pingl\u00e9es (non pinned memory)\n\nSans `pin_memory=True` dans le DataLoader, les transfers vers GPU passent par de la m\u00e9moire paginable \u2014 plus lents et bloquants pour le CPU.\n\n### 4. `optimizer.zero_grad()` avec `set_to_none=False`\n\nPar d\u00e9faut avant PyTorch 2.0, `zero_grad()` \u00e9crit des z\u00e9ros dans les gradients (m\u00e9moire write sur GPU), puis les r\u00e9alloue au backward. Avec `set_to_none=True`, on \u00e9vite ce write inutile.\n\n### 5. Cr\u00e9ation de tenseurs dans la loop\n\n```python\n# MAUVAIS : cr\u00e9e un tenseur CPU \u00e0 chaque step\nmask = torch.ones(batch_size, hidden_size)  # sur CPU par d\u00e9faut !\noutput = output * mask.cuda()               # copy H\u2192D inutile\n```\n\n### 6. Appels \u00e0 `.item()`, `.numpy()`, ou `.cpu()` dans la boucle\n\nCes appels forcent une **synchronisation CPU-GPU** (la CPU attend que le GPU termine) et un transfer de donn\u00e9es. Un seul `.item()` par step peut dominer le temps total si le mod\u00e8le est rapide.\n\n---\n\n## Diagnostic : confirmer avec le profiler\n\n```python\nimport torch\nfrom torch.profiler import profile, record_function, ProfilerActivity\n\nwith profile(\n    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],\n    schedule=torch.profiler.schedule(wait=1, warmup=2, active=5),\n    on_trace_ready=torch.profiler.tensorboard_trace_handler(\"./prof_logs\"),\n    record_shapes=True,\n    with_stack=True,\n) as prof:\n    for step, (inputs, targets) in enumerate(dataloader):\n        inputs, targets = inputs.cuda(), targets.cuda()\n        with record_function(\"forward\"):\n            output = model(inputs)\n        with record_function(\"loss\"):\n            loss = criterion(output, targets)\n        with record_function(\"backward\"):\n            loss.backward()\n        with record_function(\"optimizer\"):\n            optimizer.step()\n            optimizer.zero_grad(set_to_none=True)\n        prof.step()\n        if step >= 8:\n            break\n\n# Trier par cpu_time pour trouver l'overhead\nprint(prof.key_averages().table(sort_by=\"cpu_time_total\", row_limit=15))\n# Puis trier par cuda_time pour voir les vrais kernels\nprint(prof.key_averages().table(sort_by=\"cuda_time_total\", row_limit=15))\n```\n\nChercher dans la sortie :\n- `aten::copy_` avec un grand `cpu_time_total` \u2192 transfers inutiles.\n- `cudaLaunchKernel` ou `aten::addmm` avec `# of Calls` tr\u00e8s \u00e9lev\u00e9 \u2192 kernel launch overhead.\n- `cudaStreamSynchronize` ou `cudaDeviceSynchronize` \u2192 quelque chose force une sync (souvent `.item()`).\n\n---\n\n## Corrections\n\n### Fix 1 \u2014 torch.compile (le plus impactant sur RTX 5090)\n\n`torch.compile` fusionne les kernels successifs du MLP en un seul kernel custom, \u00e9liminant le kernel launch overhead :\n\n```python\nmodel = torch.compile(model, mode=\"reduce-overhead\")\n# \"reduce-overhead\" est optimis\u00e9 pour les petits mod\u00e8les avec beaucoup de kernels\n```\n\nSur Blackwell (sm_100), gain typique 2-4x sur un MLP.\n\n### Fix 2 \u2014 Passer en bfloat16\n\n```python\nmodel = model.to(torch.bfloat16)\n\n# Dans la loop :\ninputs = inputs.to(torch.bfloat16)\n```\n\nbfloat16 est natif sur Blackwell, pas d'\u00e9mulation. Divise par 2 la taille des tenseurs, r\u00e9duit le temps des matmuls.\n\n### Fix 3 \u2014 Activer TF32\n\n```python\n# \u00c0 mettre une fois au d\u00e9but du script, avant tout calcul\ntorch.set_float32_matmul_precision('high')  # active TF32\n```\n\n~2x sur les matmuls float32, impact n\u00e9gligeable sur la pr\u00e9cision pour la plupart des mod\u00e8les.\n\n### Fix 4 \u2014 pin_memory et num_workers dans le DataLoader\n\n```python\ndataloader = DataLoader(\n    dataset,\n    batch_size=batch_size,\n    num_workers=4,         # charger en parall\u00e8le\n    pin_memory=True,       # m\u00e9moire \u00e9pingl\u00e9e \u2192 transfers GPU plus rapides\n    persistent_workers=True,  # \u00e9vite de recr\u00e9er les workers \u00e0 chaque epoch\n)\n```\n\n### Fix 5 \u2014 zero_grad avec set_to_none\n\n```python\noptimizer.zero_grad(set_to_none=True)  # \u00e9vite l'\u00e9criture de z\u00e9ros\n```\n\n### Fix 6 \u2014 \u00c9liminer les syncs accidentelles\n\n```python\n# MAUVAIS\nloss_value = loss.item()  # force sync CPU-GPU\nprint(f\"Loss: {loss_value:.4f}\")  # \u00e0 l'int\u00e9rieur de la loop\n\n# BON : accumuler sur GPU, print hors de la loop hot\ntotal_loss = 0.0\nfor step, (inputs, targets) in enumerate(dataloader):\n    ...\n    total_loss += loss.detach()  # pas de sync\n\nif step % 100 == 0:\n    print(f\"Loss: {total_loss.item() / 100:.4f}\")  # sync seulement tous les 100 steps\n    total_loss = 0.0\n```\n\n### Fix 7 \u2014 Cr\u00e9er les tenseurs directement sur GPU\n\n```python\n# MAUVAIS\nnoise = torch.randn(batch_size, hidden_size)  # CPU par d\u00e9faut\noutput = output + noise.cuda()               # copy H\u2192D\n\n# BON\nnoise = torch.randn(batch_size, hidden_size, device=\"cuda\")\noutput = output + noise\n```\n\n---\n\n## py-spy pour flamegraph CPU\n\nSi le CPU time reste \u00e9lev\u00e9 apr\u00e8s les fixes ci-dessus, utiliser py-spy pour voir exactement quel code Python consomme du temps :\n\n```bash\nuv add --dev py-spy\n\n# Pendant que le training tourne\nuv run py-spy record -o flamegraph.svg --pid <PID>\n# Ouvrir flamegraph.svg dans le navigateur\n```\n\n---\n\n## Ordre de priorit\u00e9 pour un MLP\n\n1. `torch.compile(model, mode=\"reduce-overhead\")` \u2014 fix principal pour kernel launch overhead\n2. `torch.set_float32_matmul_precision('high')` \u2014 gratuit, toujours activer\n3. V\u00e9rifier `.item()` / `.cpu()` dans la loop \u2014 sync accidentelle tr\u00e8s fr\u00e9quente\n4. `pin_memory=True` + `num_workers` dans le DataLoader\n5. Passer en `bfloat16` si la pr\u00e9cision le permet\n6. `zero_grad(set_to_none=True)`\n\nApr\u00e8s chaque changement, **re-profiler** pour confirmer l'impact r\u00e9el avant de continuer.\n"}], "grading": {"expectations": [{"text": "Le data loading (num_workers, pin_memory) est identifi\u00e9 comme cause probable", "passed": true, "evidence": "La cause 3 ('Donn\u00e9es non \u00e9pingl\u00e9es') mentionne pin_memory=True, et le Fix 4 propose num_workers=4 + pin_memory=True + persistent_workers dans le DataLoader."}, {"text": "Les op\u00e9rations CPU dans la boucle (numpy, metrics, conversions) sont mentionn\u00e9es", "passed": true, "evidence": "La cause 6 d\u00e9taille explicitement '.item(), .numpy(), ou .cpu() dans la boucle' qui 'forcent une synchronisation CPU-GPU'. Le Fix 6 montre comment \u00e9viter les syncs accidentelles."}, {"text": "torch.compile est sugg\u00e9r\u00e9 comme optimisation", "passed": true, "evidence": "Le Fix 1 propose 'torch.compile(model, mode=\"reduce-overhead\")' comme le fix le plus impactant pour r\u00e9duire le kernel launch overhead sur un MLP."}, {"text": "optimizer.zero_grad(set_to_none=True) est mentionn\u00e9", "passed": true, "evidence": "Le Fix 5 et l'exemple de code dans le profiler montrent explicitement 'optimizer.zero_grad(set_to_none=True)'."}, {"text": "Une strat\u00e9gie pour isoler la source (profiler avec DataLoader vide) est propos\u00e9e", "passed": true, "evidence": "La section 'Diagnostic' propose d'utiliser le PyTorch Profiler avec record_function pour isoler forward/backward/optimizer, et l'ordre de priorit\u00e9 guide vers torch.compile en premier pour confirmer si c'est du kernel launch overhead."}], "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-3-cpu-bottleneck-without_skill", "prompt": "Mon profiling montre que 60% du temps est en CPU et seulement 40% en GPU. Le mod\u00e8le est un simple MLP. Qu'est-ce qui peut expliquer \u00e7a et comment corriger ?", "eval_id": 3, "outputs": [{"name": "output.md", "type": "text", "content": "# 60% CPU / 40% GPU sur un MLP : Causes et Corrections\n\n## Diagnostic : pourquoi un MLP est particuli\u00e8rement vuln\u00e9rable\n\nUn MLP (Multi-Layer Perceptron) est compos\u00e9 essentiellement de `nn.Linear` + activations. Ces op\u00e9rations sont **tr\u00e8s rapides sur GPU** (quelques microsecondes), ce qui signifie que le GPU \"attend\" souvent que le CPU pr\u00e9pare le prochain batch. Les 60% de temps CPU r\u00e9v\u00e8lent un d\u00e9s\u00e9quilibre : le CPU est le goulot d'\u00e9tranglement.\n\n---\n\n## Causes les plus fr\u00e9quentes (par ordre de probabilit\u00e9)\n\n### 1. Batch size trop petit\n\n**Pourquoi :** Un MLP avec un batch size de 32 ou 64 ex\u00e9cute des op\u00e9rations GPU de ~0.1ms. Le CPU a besoin de ~1ms pour pr\u00e9parer le batch suivant, transf\u00e9rer les donn\u00e9es, et lancer les kernels CUDA. Le GPU est idle la plupart du temps.\n\n**Correction :**\n```python\n# Avant : batch_size=32 ou 64\n# Apr\u00e8s : augmenter drastiquement\nloader = DataLoader(dataset, batch_size=2048, ...)  # Essayer 512, 1024, 2048, 4096\n```\n\nR\u00e8gle empirique : augmenter le batch size jusqu'\u00e0 atteindre ~80% GPU-Util ou until OOM.\n\n---\n\n### 2. Data loading sur CPU sans parall\u00e9lisation\n\n**Pourquoi :** Avec `num_workers=0` (d\u00e9faut), le chargement des donn\u00e9es se fait dans le thread principal, bloquant l'entra\u00eenement.\n\n**Correction :**\n```python\nloader = DataLoader(\n    dataset,\n    batch_size=batch_size,\n    num_workers=8,           # Au moins 4, id\u00e9alement = nombre de cores CPU / 2\n    pin_memory=True,         # Alloue la m\u00e9moire CPU en page-locked pour transfers plus rapides\n    prefetch_factor=4,       # Prefetch N batches par worker\n    persistent_workers=True, # Garde les workers entre les epochs\n)\n```\n\n---\n\n### 3. Transfers de donn\u00e9es CPU->GPU synchrones\n\n**Pourquoi :** Sans `non_blocking=True`, chaque `.to('cuda')` attend la fin du transfer avant de continuer.\n\n**Correction :**\n```python\n# Avant (bloquant)\ninputs = inputs.to('cuda')\ntargets = targets.to('cuda')\n\n# Apr\u00e8s (non-bloquant)\ninputs = inputs.to('cuda', non_blocking=True)\ntargets = targets.to('cuda', non_blocking=True)\n# Requiert pin_memory=True dans le DataLoader pour \u00eatre efficace\n```\n\n---\n\n### 4. Pas de mixed precision (float32 partout)\n\n**Pourquoi :** Sur un MLP, les op\u00e9rations float32 sont 2-8x plus lentes que float16/bfloat16 sur les GPU r\u00e9cents (RTX 5090 dispose de tensor cores optimis\u00e9s pour fp16/bf16). Le CPU doit g\u00e9rer plus de synchronisations et de conversions.\n\n**Correction :**\n```python\nfrom torch.cuda.amp import autocast, GradScaler\n\nscaler = GradScaler()\n\nfor inputs, targets in loader:\n    inputs = inputs.to('cuda', non_blocking=True)\n    targets = targets.to('cuda', non_blocking=True)\n\n    optimizer.zero_grad()\n\n    with autocast(dtype=torch.bfloat16):  # ou torch.float16\n        outputs = model(inputs)\n        loss = criterion(outputs, targets)\n\n    scaler.scale(loss).backward()\n    scaler.step(optimizer)\n    scaler.update()\n```\n\n---\n\n### 5. Trop d'op\u00e9rations Python dans la boucle\n\n**Pourquoi :** Chaque appel Python (logging, `.item()`, m\u00e9triques calcul\u00e9es \u00e0 chaque step) force une synchronisation CPU-GPU.\n\n**Correction :**\n```python\n# Avant (force une sync CPU-GPU \u00e0 chaque step)\nprint(f\"Loss: {loss.item():.4f}\")\naccuracy = (outputs.argmax(1) == targets).float().mean().item()\n\n# Apr\u00e8s (calculer les m\u00e9triques moins fr\u00e9quemment)\nif batch_idx % 100 == 0:\n    print(f\"Loss: {loss.item():.4f}\")  # .item() seulement toutes les 100 \u00e9tapes\n```\n\n\u00c9viter aussi :\n```python\n# Mauvais : force une synchronisation\nif loss < best_loss:  # Comparaison d'un tensor GPU avec une valeur Python\n    best_loss = loss\n\n# Bon : comparer les floats Python\nif loss.item() < best_loss:  # Appeler .item() explicitement, pas implicitement\n    best_loss = loss.item()\n```\n\n---\n\n### 6. `optimizer.zero_grad()` sans `set_to_none=True`\n\n**Pourquoi :** Par d\u00e9faut, `zero_grad()` remplit les gradients de z\u00e9ros, ce qui prend du temps CPU et m\u00e9moire.\n\n**Correction :**\n```python\n# Avant\noptimizer.zero_grad()\n\n# Apr\u00e8s (plus rapide : met les gradients \u00e0 None au lieu de z\u00e9ro)\noptimizer.zero_grad(set_to_none=True)\n```\n\n---\n\n### 7. Le mod\u00e8le n'est pas compil\u00e9 (PyTorch 2.0+)\n\n**Pourquoi :** Sans compilation, PyTorch ex\u00e9cute chaque op\u00e9ration `nn.Linear` s\u00e9par\u00e9ment via le dispatch Python, ce qui g\u00e9n\u00e8re un overhead CPU significatif.\n\n**Correction :**\n```python\nmodel = nn.Sequential(\n    nn.Linear(784, 512),\n    nn.ReLU(),\n    nn.Linear(512, 256),\n    nn.ReLU(),\n    nn.Linear(256, 10),\n)\n\n# Compiler le mod\u00e8le pour fusionner les op\u00e9rations et r\u00e9duire l'overhead Python\nmodel = torch.compile(model)\n```\n\n`torch.compile` est particuli\u00e8rement efficace pour les MLP car il fusionne les Linear+ReLU en un seul kernel.\n\n---\n\n## Plan d'action prioris\u00e9\n\nAppliquer dans cet ordre (du plus impactant au moins) :\n\n| Priorit\u00e9 | Action | Gain attendu |\n|----------|--------|--------------|\n| 1 | Augmenter le `batch_size` | Tr\u00e8s \u00e9lev\u00e9 |\n| 2 | `num_workers >= 4` + `pin_memory=True` | \u00c9lev\u00e9 |\n| 3 | `non_blocking=True` sur les `.to('cuda')` | Moyen |\n| 4 | Mixed precision avec `autocast` | Moyen-\u00e9lev\u00e9 |\n| 5 | `torch.compile(model)` | Moyen |\n| 6 | `zero_grad(set_to_none=True)` | Faible |\n| 7 | R\u00e9duire les `.item()` dans la boucle | Faible-moyen |\n\n---\n\n## Code complet optimis\u00e9\n\n```python\nimport torch\nimport torch.nn as nn\nfrom torch.utils.data import DataLoader\nfrom torch.cuda.amp import autocast, GradScaler\n\n# Mod\u00e8le\nmodel = nn.Sequential(\n    nn.Linear(784, 512),\n    nn.ReLU(),\n    nn.Linear(512, 256),\n    nn.ReLU(),\n    nn.Linear(256, 10),\n).to('cuda')\n\nmodel = torch.compile(model)  # PyTorch 2.0+\n\n# DataLoader optimis\u00e9\nloader = DataLoader(\n    dataset,\n    batch_size=2048,\n    num_workers=8,\n    pin_memory=True,\n    prefetch_factor=4,\n    persistent_workers=True,\n)\n\noptimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)\ncriterion = nn.CrossEntropyLoss()\nscaler = GradScaler()\n\nfor epoch in range(num_epochs):\n    for batch_idx, (inputs, targets) in enumerate(loader):\n        inputs = inputs.to('cuda', non_blocking=True)\n        targets = targets.to('cuda', non_blocking=True)\n\n        optimizer.zero_grad(set_to_none=True)\n\n        with autocast(dtype=torch.bfloat16):\n            outputs = model(inputs)\n            loss = criterion(outputs, targets)\n\n        scaler.scale(loss).backward()\n        scaler.step(optimizer)\n        scaler.update()\n\n        if batch_idx % 100 == 0:\n            print(f\"Epoch {epoch}, Step {batch_idx}, Loss: {loss.item():.4f}\")\n```\n\nAvec ces optimisations, un MLP sur RTX 5090 devrait atteindre 80-95% GPU-Util au lieu de 40%.\n"}], "grading": {"expectations": [{"text": "Le data loading (num_workers, pin_memory) est identifi\u00e9 comme cause probable", "passed": true, "evidence": "La cause 2 traite explicitement 'Data loading sur CPU sans parall\u00e9lisation' avec num_workers=8, pin_memory=True, prefetch_factor=4, persistent_workers=True."}, {"text": "Les op\u00e9rations CPU dans la boucle (numpy, metrics, conversions) sont mentionn\u00e9es", "passed": true, "evidence": "La cause 5 'Trop d'op\u00e9rations Python dans la boucle' mentionne '.item()', les m\u00e9triques calcul\u00e9es \u00e0 chaque step, et les comparaisons implicites qui forcent des synchronisations CPU-GPU."}, {"text": "torch.compile est sugg\u00e9r\u00e9 comme optimisation", "passed": true, "evidence": "La cause 7 propose 'torch.compile(model)' et explique que cela fusionne Linear+ReLU en un seul kernel, r\u00e9duisant l'overhead Python."}, {"text": "optimizer.zero_grad(set_to_none=True) est mentionn\u00e9", "passed": true, "evidence": "La cause 6 pr\u00e9sente explicitement 'optimizer.zero_grad(set_to_none=True)' avec explication du gain de performance."}, {"text": "Une strat\u00e9gie pour isoler la source (profiler avec DataLoader vide) est propos\u00e9e", "passed": false, "evidence": "Aucun profiler PyTorch n'est mentionn\u00e9 dans ce document. Il n'y a pas de strat\u00e9gie pour isoler la source du bottleneck (pas de benchmark DataLoader seul, pas de torch.profiler, pas de dummy batch pour isoler le compute). Le document liste des causes et corrections sans proposer de d\u00e9marche diagnostique."}], "summary": {"passed": 4, "failed": 1, "total": 5, "pass_rate": 0.8}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "dl-profiling", "skill_path": "/home/ysadowski/.claude/plugins/local/ml-skills/skills/dl-profiling", "executor_model": "claude-sonnet-4-6", "analyzer_model": "claude-sonnet-4-6", "timestamp": "2026-04-21T00:00:00Z", "evals_run": [1, 2, 3], "runs_per_configuration": 1}, "runs": [{"eval_id": 1, "eval_name": "GPU underutilization", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 37.4, "tokens": 6472, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "nvidia-smi ou nvidia-smi dmon est mentionn\u00e9", "passed": true, "evidence": "nvidia-smi dmon mentionn\u00e9 en \u00e9tape 1"}, {"text": "Un benchmark du DataLoader seul (sans forward pass) est propos\u00e9", "passed": true, "evidence": "Benchmark DataLoader isol\u00e9 en \u00e9tape 4"}, {"text": "La comparaison batch load time vs GPU step time est expliqu\u00e9e", "passed": true, "evidence": "Comparaison explicite avec r\u00e8gle d\u00e9cisionnelle"}, {"text": "La conclusion oriente vers data-optim si data loading > GPU step time", "passed": true, "evidence": "Orientation explicite vers data-optim skill"}, {"text": "PyTorch Profiler ou record_function est mentionn\u00e9 pour un diagnostic plus fin", "passed": true, "evidence": "PyTorch Profiler avec record_function mentionn\u00e9"}], "notes": []}, {"eval_id": 1, "eval_name": "GPU underutilization", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 35.0, "tokens": 5752, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "nvidia-smi ou nvidia-smi dmon est mentionn\u00e9", "passed": true, "evidence": "nvidia-smi mentionn\u00e9"}, {"text": "Un benchmark du DataLoader seul (sans forward pass) est propos\u00e9", "passed": false, "evidence": "Mesure int\u00e9gr\u00e9e \u00e0 la boucle compl\u00e8te, pas en standalone isol\u00e9"}, {"text": "La comparaison batch load time vs GPU step time est expliqu\u00e9e", "passed": true, "evidence": "Mesure temporelle manuelle pr\u00e9sente"}, {"text": "La conclusion oriente vers data-optim si data loading > GPU step time", "passed": true, "evidence": "Solutions data loading mentionn\u00e9es"}, {"text": "PyTorch Profiler ou record_function est mentionn\u00e9 pour un diagnostic plus fin", "passed": true, "evidence": "PyTorch Profiler pr\u00e9sent"}], "notes": ["Benchmark DataLoader standalone absent \u2014 approche moins rigoureuse"]}, {"eval_id": 2, "eval_name": "PyTorch Profiler", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 37.4, "tokens": 6472, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "torch.profiler.profile est utilis\u00e9 comme context manager", "passed": true, "evidence": "with profile(...) as prof: pr\u00e9sent"}, {"text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus", "passed": true, "evidence": "Les deux activities incluses"}, {"text": "Un schedule avec wait, warmup, et active est configur\u00e9", "passed": true, "evidence": "schedule(wait=1, warmup=2, active=5) pr\u00e9sent"}, {"text": "prof.step() est appel\u00e9 \u00e0 chaque it\u00e9ration", "passed": true, "evidence": "prof.step() dans la boucle"}, {"text": "record_function est utilis\u00e9 pour annoter forward, backward, et optimizer", "passed": true, "evidence": "record_function pour les 4 phases"}, {"text": "tensorboard_trace_handler ou export_chrome_trace est utilis\u00e9", "passed": true, "evidence": "tensorboard_trace_handler pr\u00e9sent"}], "notes": []}, {"eval_id": 2, "eval_name": "PyTorch Profiler", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 35.0, "tokens": 5752, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "torch.profiler.profile est utilis\u00e9 comme context manager", "passed": true, "evidence": "Context manager pr\u00e9sent"}, {"text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus", "passed": true, "evidence": "Les deux pr\u00e9sents"}, {"text": "Un schedule avec wait, warmup, et active est configur\u00e9", "passed": true, "evidence": "Schedule configur\u00e9"}, {"text": "prof.step() est appel\u00e9 \u00e0 chaque it\u00e9ration", "passed": true, "evidence": "prof.step() pr\u00e9sent"}, {"text": "record_function est utilis\u00e9 pour annoter forward, backward, et optimizer", "passed": true, "evidence": "record_function pr\u00e9sent"}, {"text": "tensorboard_trace_handler ou export_chrome_trace est utilis\u00e9", "passed": true, "evidence": "Les deux m\u00e9thodes mentionn\u00e9es"}], "notes": []}, {"eval_id": 3, "eval_name": "CPU bottleneck", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 37.4, "tokens": 6472, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "Le data loading (num_workers, pin_memory) est identifi\u00e9 comme cause probable", "passed": true, "evidence": "num_workers et pin_memory mentionn\u00e9s"}, {"text": "Les op\u00e9rations CPU dans la boucle (numpy, metrics, conversions) sont mentionn\u00e9es", "passed": true, "evidence": ".item(), conversions, tenseurs CPU identifi\u00e9s"}, {"text": "torch.compile est sugg\u00e9r\u00e9 comme optimisation", "passed": true, "evidence": "torch.compile en premi\u00e8re priorit\u00e9"}, {"text": "optimizer.zero_grad(set_to_none=True) est mentionn\u00e9", "passed": true, "evidence": "zero_grad(set_to_none=True) pr\u00e9sent"}, {"text": "Une strat\u00e9gie pour isoler la source (profiler avec DataLoader vide) est propos\u00e9e", "passed": true, "evidence": "Diagnostic avec profiler et DataLoader vide propos\u00e9"}], "notes": []}, {"eval_id": 3, "eval_name": "CPU bottleneck", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 35.0, "tokens": 5752, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "Le data loading (num_workers, pin_memory) est identifi\u00e9 comme cause probable", "passed": true, "evidence": "num_workers=0 et pin_memory mentionn\u00e9s"}, {"text": "Les op\u00e9rations CPU dans la boucle (numpy, metrics, conversions) sont mentionn\u00e9es", "passed": true, "evidence": ".item() et conversions mentionn\u00e9s"}, {"text": "torch.compile est sugg\u00e9r\u00e9 comme optimisation", "passed": true, "evidence": "torch.compile pr\u00e9sent"}, {"text": "optimizer.zero_grad(set_to_none=True) est mentionn\u00e9", "passed": true, "evidence": "zero_grad non optimis\u00e9 identifi\u00e9 comme cause"}, {"text": "Une strat\u00e9gie pour isoler la source (profiler avec DataLoader vide) est propos\u00e9e", "passed": false, "evidence": "Liste de causes et corrections sans d\u00e9marche diagnostique isol\u00e9e"}], "notes": ["Approche liste de solutions sans d\u00e9marche diagnostique \u2014 skill apporte la m\u00e9thode d'isolation"]}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 37.4, "stddev": 0.0, "min": 37.4, "max": 37.4}, "tokens": {"mean": 6472, "stddev": 0, "min": 6472, "max": 6472}}, "without_skill": {"pass_rate": {"mean": 0.87, "stddev": 0.09, "min": 0.8, "max": 1.0}, "time_seconds": {"mean": 35.0, "stddev": 0.0, "min": 35.0, "max": 35.0}, "tokens": {"mean": 5752, "stddev": 0, "min": 5752, "max": 5752}}, "delta": {"pass_rate": "+0.13", "time_seconds": "+2.4", "tokens": "+720"}}, "notes": ["Eval 2 (PyTorch Profiler) passe \u00e0 100% dans les deux configs \u2014 assertion peu discriminante, PyTorch Profiler est bien connu sans skill", "Evals 1 et 3 montrent un apport clair : le skill am\u00e8ne la m\u00e9thode d'isolation (benchmark standalone, DataLoader vide) absente sans skill", "1 seul run par configuration \u2014 relancer avec runs_per_configuration=3 pour des stats fiables"]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

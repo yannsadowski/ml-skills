@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-2-jpeg-500k",
+  "prompt": "J'ai un dataset de 500k images JPEG sur disque. L'entraînement est lent et le GPU utilisation est à 50%. Quelles sont les optimisations concrètes pour accélérer le data loading ?",
+  "assertions": [
+    "num_workers, pin_memory=True, persistent_workers=True, prefetch_factor sont tous mentionnés",
+    "La conversion des JPEGs vers HDF5 ou numpy memmap est recommandée",
+    "Le cache en RAM (si dataset tient en mémoire) est mentionné",
+    "Un benchmark DataLoader (mesure du batch load time) est proposé pour quantifier le gain",
+    "drop_last=True est mentionné pour éviter les batches partiels lents"
+  ]
+}

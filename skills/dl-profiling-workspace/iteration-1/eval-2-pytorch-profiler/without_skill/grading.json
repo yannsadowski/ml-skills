@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "torch.profiler.profile est utilisé comme context manager",
+      "passed": true,
+      "evidence": "'with profile(...) as prof:' est utilisé comme context manager dans l'exemple principal."
+    },
+    {
+      "text": "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus",
+      "passed": true,
+      "evidence": "activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA] est explicitement présent dans les exemples."
+    },
+    {
+      "text": "Un schedule avec wait, warmup, et active est configuré",
+      "passed": true,
+      "evidence": "profiler_schedule = schedule(wait=1, warmup=1, active=3, repeat=1) est configuré avec les trois paramètres requis."
+    },
+    {
+      "text": "prof.step() est appelé à chaque itération",
+      "passed": true,
+      "evidence": "prof.step() est appelé à chaque itération avec le commentaire 'IMPORTANT : appeler prof.step() à chaque itération'. Également mentionné dans les bonnes pratiques."
+    },
+    {
+      "text": "record_function est utilisé pour annoter forward, backward, et optimizer",
+      "passed": true,
+      "evidence": "record_function est utilisé pour 'data_transfer', 'forward_pass', 'loss_computation', 'backward_pass', et 'optimizer_step'. Forward et backward sont couverts."
+    },
+    {
+      "text": "tensorboard_trace_handler ou export_chrome_trace est utilisé pour visualiser",
+      "passed": true,
+      "evidence": "Les deux méthodes sont présentes : tensorboard_trace_handler('./profiler_logs') dans la section TensorBoard, et prof.export_chrome_trace('training_trace.json') dans la version légère."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

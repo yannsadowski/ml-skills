@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-2-pytorch-profiler",
+  "prompt": "Je veux profiler mon training loop avec PyTorch Profiler pour voir quelles opérations prennent le plus de temps. Montre-moi comment l'intégrer dans ma boucle d'entraînement existante.",
+  "assertions": [
+    "torch.profiler.profile est utilisé comme context manager",
+    "ProfilerActivity.CPU et ProfilerActivity.CUDA sont tous les deux inclus",
+    "Un schedule avec wait, warmup, et active est configuré",
+    "prof.step() est appelé à chaque itération",
+    "record_function est utilisé pour annoter forward, backward, et optimizer",
+    "tensorboard_trace_handler ou export_chrome_trace est utilisé pour visualiser"
+  ]
+}

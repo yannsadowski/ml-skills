@@ -1,0 +1,180 @@
+{
+  "metadata": {
+    "skill_name": "data-optim",
+    "skill_path": "/home/ysadowski/.claude/plugins/local/ml-skills/skills/data-optim",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-04-21T00:00:00Z",
+    "evals_run": [1, 2, 3],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "WSL2 workers freeze",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 30.9,
+        "tokens": 6152,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le problème est identifié comme spécifique à WSL2 et au multiprocessing fork", "passed": true, "evidence": "Cause WSL2 + fork explicitement identifiée"},
+        {"text": "mp.set_start_method('spawn', force=True) est proposé comme solution principale", "passed": true, "evidence": "set_start_method('spawn', force=True) présent"},
+        {"text": "Le fallback num_workers=0 est mentionné si spawn ne règle pas le problème", "passed": true, "evidence": "Fallback num_workers=0 mentionné"},
+        {"text": "persistent_workers=True est mentionné comme paramètre utile", "passed": true, "evidence": "persistent_workers=True présent"},
+        {"text": "Une alternative de compensation (dataset en RAM ou cache) est suggérée", "passed": true, "evidence": "CachedDataset en RAM suggéré"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "WSL2 workers freeze",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 32.7,
+        "tokens": 5502,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Le problème est identifié comme spécifique à WSL2 et au multiprocessing fork", "passed": true, "evidence": "Mémoire partagée POSIX WSL2 identifiée"},
+        {"text": "mp.set_start_method('spawn', force=True) est proposé comme solution principale", "passed": true, "evidence": "multiprocessing_context='spawn' présent"},
+        {"text": "Le fallback num_workers=0 est mentionné si spawn ne règle pas le problème", "passed": true, "evidence": "Réduction num_workers mentionnée"},
+        {"text": "persistent_workers=True est mentionné comme paramètre utile", "passed": true, "evidence": "persistent_workers mentionné"},
+        {"text": "Une alternative de compensation (dataset en RAM ou cache) est suggérée", "passed": false, "evidence": "Pas de suggestion de cache RAM ou dataset en mémoire"}
+      ],
+      "notes": ["Cache RAM absent — le skill amène ce pattern de compensation WSL2-specific"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "500k JPEG",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 30.9,
+        "tokens": 6152,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "num_workers, pin_memory=True, persistent_workers=True, prefetch_factor sont tous mentionnés", "passed": true, "evidence": "Tous les 4 paramètres présents"},
+        {"text": "La conversion des JPEGs vers HDF5 ou numpy memmap est recommandée", "passed": true, "evidence": "HDF5 et memmap numpy recommandés"},
+        {"text": "Le cache en RAM (si dataset tient en mémoire) est mentionné", "passed": false, "evidence": "Cache RAM non mentionné explicitement"},
+        {"text": "Un benchmark DataLoader (mesure du batch load time) est proposé pour quantifier le gain", "passed": true, "evidence": "benchmark_dataloader() proposé en étape 1"},
+        {"text": "drop_last=True est mentionné pour éviter les batches partiels lents", "passed": true, "evidence": "drop_last=True présent"}
+      ],
+      "notes": ["Cache RAM absent — assertion à renforcer dans le skill"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "500k JPEG",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 32.7,
+        "tokens": 5502,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "num_workers, pin_memory=True, persistent_workers=True, prefetch_factor sont tous mentionnés", "passed": true, "evidence": "Paramètres DataLoader présents"},
+        {"text": "La conversion des JPEGs vers HDF5 ou numpy memmap est recommandée", "passed": false, "evidence": "WebDataset/LMDB recommandés à la place de HDF5/memmap"},
+        {"text": "Le cache en RAM (si dataset tient en mémoire) est mentionné", "passed": true, "evidence": "Mise en cache RAM mentionnée"},
+        {"text": "Un benchmark DataLoader (mesure du batch load time) est proposé pour quantifier le gain", "passed": false, "evidence": "Pas de benchmark DataLoader proposé"},
+        {"text": "drop_last=True est mentionné pour éviter les batches partiels lents", "passed": false, "evidence": "drop_last absent"}
+      ],
+      "notes": ["Sans skill : recommande WebDataset/LMDB au lieu de HDF5/memmap — approche différente de la stack PyTorch native"]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Augmentation lente",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 30.9,
+        "tokens": 6152,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "torchvision.transforms v2 ou kornia pour augmentation GPU est mentionné", "passed": true, "evidence": "torchvision.transforms.v2 et GPUAugmentation présents"},
+        {"text": "La distinction CPU augmentation vs GPU augmentation est expliquée", "passed": true, "evidence": "Distinction expliquée avec gains attendus"},
+        {"text": "L'option de pré-calculer (offline augmentation) est mentionnée pour les petits datasets", "passed": true, "evidence": "Pré-calcul offline mentionné"},
+        {"text": "L'augmentation dans le collate_fn (après stack batch) est proposée pour réduire les appels", "passed": false, "evidence": "collate_fn non mentionné"},
+        {"text": "Le tradeoff mémoire/vitesse est abordé", "passed": false, "evidence": "Tradeoff mémoire/vitesse non abordé"}
+      ],
+      "notes": ["collate_fn et tradeoff mémoire/vitesse absents — à ajouter au skill"]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Augmentation lente",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 32.7,
+        "tokens": 5502,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "torchvision.transforms v2 ou kornia pour augmentation GPU est mentionné", "passed": true, "evidence": "transforms.v2 et Albumentations mentionnés"},
+        {"text": "La distinction CPU augmentation vs GPU augmentation est expliquée", "passed": true, "evidence": "Distinction expliquée"},
+        {"text": "L'option de pré-calculer (offline augmentation) est mentionnée pour les petits datasets", "passed": true, "evidence": "Pré-calcul offline présent"},
+        {"text": "L'augmentation dans le collate_fn (après stack batch) est proposée pour réduire les appels", "passed": false, "evidence": "collate_fn absent"},
+        {"text": "Le tradeoff mémoire/vitesse est abordé", "passed": false, "evidence": "Tradeoff mémoire/vitesse non abordé"}
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 0.8, "stddev": 0.16, "min": 0.6, "max": 1.0},
+      "time_seconds": {"mean": 30.9, "stddev": 0.0, "min": 30.9, "max": 30.9},
+      "tokens": {"mean": 6152, "stddev": 0, "min": 6152, "max": 6152}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.6, "stddev": 0.16, "min": 0.4, "max": 0.8},
+      "time_seconds": {"mean": 32.7, "stddev": 0.0, "min": 32.7, "max": 32.7},
+      "tokens": {"mean": 5502, "stddev": 0, "min": 5502, "max": 5502}
+    },
+    "delta": {
+      "pass_rate": "+0.20",
+      "time_seconds": "-1.8",
+      "tokens": "+650"
+    }
+  },
+  "notes": [
+    "Eval 2 (500k JPEG) montre le plus grand delta (+40%) — le skill oriente vers HDF5/memmap (stack PyTorch native) là où le modèle sans skill recommande WebDataset/LMDB",
+    "Eval 3 (Augmentation) : score identique avec et sans skill (60%) — collate_fn et tradeoff mémoire/vitesse manquent dans les deux cas. À ajouter au skill",
+    "Eval 1 (WSL2 workers) : léger avantage skill (+20%) sur le pattern cache RAM de compensation",
+    "1 seul run par configuration — stddev non représentatif, relancer avec runs_per_configuration=3 pour des stats fiables"
+  ]
+}

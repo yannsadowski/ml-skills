@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "torch.save sauvegarde un dict avec model_state_dict, optimizer_state_dict, scheduler_state_dict et epoch",
+      "passed": true,
+      "evidence": "checkpoint = {\"epoch\": epoch, \"model_state_dict\": model.state_dict(), \"optimizer_state_dict\": optimizer.state_dict(), \"scheduler_state_dict\": scheduler.state_dict() if scheduler is not None else None, ...}. Tous les champs requis présents."
+    },
+    {
+      "text": "torch.load utilise weights_only=True",
+      "passed": false,
+      "evidence": "checkpoint = torch.load(path, map_location=device) — weights_only=True est absent. Aucune occurrence de weights_only dans le code."
+    },
+    {
+      "text": "torch.load utilise map_location pour éviter les problèmes de device",
+      "passed": true,
+      "evidence": "torch.load(path, map_location=device) avec device résolu en amont (cuda si disponible, sinon cpu)."
+    },
+    {
+      "text": "load_checkpoint restaure l'optimizer et le scheduler, pas seulement le modèle",
+      "passed": true,
+      "evidence": "optimizer.load_state_dict(checkpoint[\"optimizer_state_dict\"]) et scheduler.load_state_dict(checkpoint[\"scheduler_state_dict\"]) présents avec vérifications conditionnelles."
+    },
+    {
+      "text": "La fonction retourne l'epoch et la métrique pour pouvoir reprendre",
+      "passed": false,
+      "evidence": "La fonction retourne le dict complet du checkpoint (return checkpoint), pas un tuple (epoch, metric). L'appelant doit extraire ckpt[\"epoch\"] manuellement, ce qui est indirect mais fonctionnel — l'assertion demande un retour explicite de l'epoch et de la métrique."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

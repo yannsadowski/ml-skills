@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Le code définit une classe nn.Module avec des blocs résiduels",
+      "passed": true,
+      "evidence": "Deux classes nn.Module définies : ResBlock (bloc résiduel avec skip connection x + self.block(x)) et ResNet qui les utilise."
+    },
+    {
+      "text": "Chaque bloc utilise LayerNorm et GELU (pas BatchNorm ni ReLU)",
+      "passed": true,
+      "evidence": "ResBlock contient nn.LayerNorm(dim) et nn.GELU() dans son nn.Sequential. Aucune mention de BatchNorm ou ReLU."
+    },
+    {
+      "text": "Le dropout est fixé à 0.1",
+      "passed": true,
+      "evidence": "dropout: float = 0.1 en paramètre par défaut de ResBlock et ResNet, et model instancié avec dropout=0.1."
+    },
+    {
+      "text": "La couche finale produit 10 logits",
+      "passed": true,
+      "evidence": "self.head = nn.Linear(hidden_dim, num_classes) avec num_classes=10, et la sortie attendue confirme Output shape : torch.Size([32, 10])."
+    },
+    {
+      "text": "Le nombre de paramètres trainables est calculé et affiché",
+      "passed": true,
+      "evidence": "trainable = sum(p.numel() for p in model.parameters() if p.requires_grad) suivi de print(f\"Trainable : {trainable:,} / {total:,} ...\")."
+    },
+    {
+      "text": "Les submodules sont enregistrés avec nn.ModuleList ou nn.Sequential (pas une liste Python)",
+      "passed": true,
+      "evidence": "self.blocks = nn.ModuleList([ResBlock(...) for _ in range(3)]) et le bloc interne de ResBlock utilise nn.Sequential."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

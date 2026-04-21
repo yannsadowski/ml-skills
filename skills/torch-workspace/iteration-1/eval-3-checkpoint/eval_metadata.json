@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-3-checkpoint",
+  "prompt": "J'ai un modèle entraîné sur GPU. Je veux sauvegarder un checkpoint complet (modèle + optimizer + scheduler + epoch) et le recharger plus tard pour reprendre l'entraînement. Montre-moi les fonctions save et load.",
+  "assertions": [
+    "torch.save sauvegarde un dict avec model_state_dict, optimizer_state_dict, scheduler_state_dict et epoch",
+    "torch.load utilise weights_only=True",
+    "torch.load utilise map_location pour éviter les problèmes de device",
+    "load_checkpoint restaure l'optimizer et le scheduler, pas seulement le modèle",
+    "La fonction retourne l'epoch et la métrique pour pouvoir reprendre"
+  ]
+}

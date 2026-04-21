@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Le problème identifié est que les labels commencent à 1 au lieu de 0",
+      "passed": true,
+      "evidence": "\"Tes labels vont de 1 à 10 (inclus) [...] Le label 10 est hors limites → assert CUDA\". Correction immédiatement proposée."
+    },
+    {
+      "text": "La commande CUDA_LAUNCH_BLOCKING=1 est mentionnée pour obtenir la vraie ligne d'erreur",
+      "passed": true,
+      "evidence": "Étape 1 : os.environ[\"CUDA_LAUNCH_BLOCKING\"] = \"1\" et commentaire \"# OU via la ligne de commande : CUDA_LAUNCH_BLOCKING=1 python train.py\"."
+    },
+    {
+      "text": "Une vérification avec targets.max() ou targets.min() est proposée",
+      "passed": true,
+      "evidence": "Fonction check_labels avec labels.min().item() et labels.max().item() et assertions correspondantes."
+    },
+    {
+      "text": "La correction (soustraire 1 aux labels ou changer num_classes) est fournie",
+      "passed": true,
+      "evidence": "\"labels_corrects = labels_incorrects - 1  # [0, 9]\" avec exemple complet de code fonctionnel."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

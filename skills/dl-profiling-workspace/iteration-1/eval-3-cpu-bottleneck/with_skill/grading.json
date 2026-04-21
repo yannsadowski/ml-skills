@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Le data loading (num_workers, pin_memory) est identifié comme cause probable",
+      "passed": true,
+      "evidence": "La cause 3 ('Données non épinglées') mentionne pin_memory=True, et le Fix 4 propose num_workers=4 + pin_memory=True + persistent_workers dans le DataLoader."
+    },
+    {
+      "text": "Les opérations CPU dans la boucle (numpy, metrics, conversions) sont mentionnées",
+      "passed": true,
+      "evidence": "La cause 6 détaille explicitement '.item(), .numpy(), ou .cpu() dans la boucle' qui 'forcent une synchronisation CPU-GPU'. Le Fix 6 montre comment éviter les syncs accidentelles."
+    },
+    {
+      "text": "torch.compile est suggéré comme optimisation",
+      "passed": true,
+      "evidence": "Le Fix 1 propose 'torch.compile(model, mode=\"reduce-overhead\")' comme le fix le plus impactant pour réduire le kernel launch overhead sur un MLP."
+    },
+    {
+      "text": "optimizer.zero_grad(set_to_none=True) est mentionné",
+      "passed": true,
+      "evidence": "Le Fix 5 et l'exemple de code dans le profiler montrent explicitement 'optimizer.zero_grad(set_to_none=True)'."
+    },
+    {
+      "text": "Une stratégie pour isoler la source (profiler avec DataLoader vide) est proposée",
+      "passed": true,
+      "evidence": "La section 'Diagnostic' propose d'utiliser le PyTorch Profiler avec record_function pour isoler forward/backward/optimizer, et l'ordre de priorité guide vers torch.compile en premier pour confirmer si c'est du kernel launch overhead."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

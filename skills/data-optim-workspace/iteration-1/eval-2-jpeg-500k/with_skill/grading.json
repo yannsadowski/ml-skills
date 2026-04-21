@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "num_workers, pin_memory=True, persistent_workers=True, prefetch_factor sont tous mentionnés",
+      "passed": true,
+      "evidence": "Section \"Optimisation 1 — Paramètres DataLoader\" liste explicitement `num_workers=8`, `pin_memory=True`, `persistent_workers=True`, `prefetch_factor=4` dans le même bloc de code."
+    },
+    {
+      "text": "La conversion des JPEGs vers HDF5 ou numpy memmap est recommandée",
+      "passed": true,
+      "evidence": "Section \"Optimisation 3 — Convertir JPEG en format binaire optimisé\" propose explicitement \"Option A — HDF5 (recommandé pour images de taille fixe)\" et \"Option B — numpy memmap (pour données déjà en array)\" avec code complet pour chaque."
+    },
+    {
+      "text": "Le cache en RAM (si dataset tient en mémoire) est mentionné",
+      "passed": false,
+      "evidence": "Aucune mention de mise en cache du dataset en RAM (ni CachedDataset, ni ramdisk, ni chargement préalable en mémoire). Les optimisations couvrent HDF5/memmap et GPU aug mais pas le cache RAM explicite."
+    },
+    {
+      "text": "Un benchmark DataLoader (mesure du batch load time) est proposé pour quantifier le gain",
+      "passed": true,
+      "evidence": "Section \"Diagnostic\" : fonction `benchmark_dataloader` qui mesure `Avg batch load time: X ms` sur N batches et compare avec le temps d'un step GPU."
+    },
+    {
+      "text": "drop_last=True est mentionné pour éviter les batches partiels lents",
+      "passed": true,
+      "evidence": "Dans le bloc DataLoader de l'Optimisation 1 : `drop_last=True,          # évite un batch partiel lent en fin d'epoch`."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Le problème est identifié comme spécifique à WSL2 et au multiprocessing fork",
+      "passed": true,
+      "evidence": "\"La cause racine est la méthode de démarrage des processus Python (`fork`) qui est incompatible avec certaines bibliothèques sous WSL2 — les workers enfants héritent d'un état corrompu et se bloquent en attente de ressources qui ne seront jamais libérées.\""
+    },
+    {
+      "text": "mp.set_start_method('spawn', force=True) est proposé comme solution principale",
+      "passed": true,
+      "evidence": "Section \"Solution 1 — Changer la méthode de démarrage des processus (fix principal)\" : `mp.set_start_method('spawn', force=True)` présenté comme première solution et comme \"la solution recommandée pour WSL2\"."
+    },
+    {
+      "text": "Le fallback num_workers=0 est mentionné si spawn ne règle pas le problème",
+      "passed": true,
+      "evidence": "Section \"Solution de secours — Passer à num_workers=0\" : `DataLoader(dataset, num_workers=0, ...)` et dans la checklist `[ ] Si freeze persiste → num_workers=0 + CachedDataset`."
+    },
+    {
+      "text": "persistent_workers=True est mentionné comme paramètre utile",
+      "passed": true,
+      "evidence": "Section \"Solution 2 — Activer `persistent_workers`\" avec code explicite : `persistent_workers=True,  # les workers restent en vie entre les epochs`."
+    },
+    {
+      "text": "Une alternative de compensation (dataset en RAM ou cache) est suggérée",
+      "passed": true,
+      "evidence": "Section \"Solution de secours\" propose un `CachedDataset` qui pré-charge et met en cache le dataset complet en RAM via `torch.save` / `torch.load`."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

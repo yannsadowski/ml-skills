@@ -1,0 +1,41 @@
+{
+  "skill_name": "torch",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implémente un ResNet à 3 blocs résiduels pour de la classification sur 10 classes. L'entrée est un tenseur de shape (batch, 128). Utilise LayerNorm, GELU, et dropout=0.1. Affiche le nombre de paramètres trainables.",
+      "expected_output": "Un nn.Module complet avec 3 ResBlock, une tête de classification, l'initialisation des poids, et le compte de paramètres affiché.",
+      "expectations": [
+        "Le code définit une classe nn.Module avec des blocs résiduels",
+        "Chaque bloc utilise LayerNorm et GELU (pas BatchNorm ni ReLU)",
+        "Le dropout est fixé à 0.1",
+        "La couche finale produit 10 logits",
+        "Le nombre de paramètres trainables est calculé et affiché",
+        "Les submodules sont enregistrés avec nn.ModuleList ou nn.Sequential (pas une liste Python)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Mon entraînement plante avec cette erreur : 'CUDA error: device-side assert triggered' sur la loss cross-entropy. Mes labels vont de 1 à 10, mon modèle sort 10 logits. Comment je débogue ça ?",
+      "expected_output": "Identification que les labels doivent être 0-indexed (0 à 9), commande CUDA_LAUNCH_BLOCKING=1 pour obtenir le vrai traceback, et vérification avec targets.max() / targets.min().",
+      "expectations": [
+        "Le problème identifié est que les labels commencent à 1 au lieu de 0",
+        "La commande CUDA_LAUNCH_BLOCKING=1 est mentionnée pour obtenir la vraie ligne d'erreur",
+        "Une vérification avec targets.max() ou targets.min() est proposée",
+        "La correction (soustraire 1 aux labels ou changer num_classes) est fournie"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "J'ai un modèle entraîné sur GPU. Je veux sauvegarder un checkpoint complet (modèle + optimizer + scheduler + epoch) et le recharger plus tard pour reprendre l'entraînement. Montre-moi les fonctions save et load.",
+      "expected_output": "Deux fonctions save_checkpoint et load_checkpoint avec torch.save/load, weights_only=True, map_location, et restauration de l'état optimizer + scheduler.",
+      "expectations": [
+        "torch.save sauvegarde un dict avec model_state_dict, optimizer_state_dict, scheduler_state_dict et epoch",
+        "torch.load utilise weights_only=True",
+        "torch.load utilise map_location pour éviter les problèmes de device",
+        "load_checkpoint restaure l'optimizer et le scheduler, pas seulement le modèle",
+        "La fonction retourne l'epoch et la métrique pour pouvoir reprendre"
+      ]
+    }
+  ]
+}

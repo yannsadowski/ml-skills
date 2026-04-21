@@ -1,0 +1,41 @@
+{
+  "skill_name": "data-optim",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Mon DataLoader avec num_workers=4 freeze aléatoirement sous WSL2. Les workers semblent se bloquer après quelques epochs. Comment je règle ça ?",
+      "expected_output": "Solution WSL-specific : set_start_method('spawn') ou fallback num_workers=0 avec compensation par caching. Explication que le multiprocessing fork pose problème sous WSL2.",
+      "expectations": [
+        "Le problème est identifié comme spécifique à WSL2 et au multiprocessing fork",
+        "mp.set_start_method('spawn', force=True) est proposé comme solution principale",
+        "Le fallback num_workers=0 est mentionné si spawn ne règle pas le problème",
+        "persistent_workers=True est mentionné comme paramètre utile",
+        "Une alternative de compensation (dataset en RAM ou cache) est suggérée"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "J'ai un dataset de 500k images JPEG sur disque. L'entraînement est lent et le GPU utilisation est à 50%. Quelles sont les optimisations concrètes pour accélérer le data loading ?",
+      "expected_output": "Pipeline d'optimisation : bons paramètres DataLoader (num_workers, pin_memory, prefetch_factor), conversion vers format binaire (HDF5/numpy memmap), et cache en RAM si le dataset tient.",
+      "expectations": [
+        "num_workers, pin_memory=True, persistent_workers=True, prefetch_factor sont tous mentionnés",
+        "La conversion des JPEGs vers HDF5 ou numpy memmap est recommandée",
+        "Le cache en RAM (si dataset tient en mémoire) est mentionné",
+        "Un benchmark DataLoader (mesure du batch load time) est proposé pour quantifier le gain",
+        "drop_last=True est mentionné pour éviter les batches partiels lents"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Je fais de l'augmentation de données (random crop, flip, color jitter) dans mon Dataset.__getitem__. L'augmentation prend 80% du temps de chargement. Comment optimiser ça ?",
+      "expected_output": "Déplacer l'augmentation sur GPU avec torchvision.transforms v2, utiliser un collate_fn GPU-based, ou pré-calculer les augmentations offline si le dataset est petit.",
+      "expectations": [
+        "torchvision.transforms v2 ou kornia pour augmentation GPU est mentionné",
+        "La distinction CPU augmentation vs GPU augmentation est expliquée",
+        "L'option de pré-calculer (offline augmentation) est mentionnée pour les petits datasets",
+        "L'augmentation dans le collate_fn (après stack batch) est proposée pour réduire les appels",
+        "Le tradeoff mémoire/vitesse est abordé"
+      ]
+    }
+  ]
+}
